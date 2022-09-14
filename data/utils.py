@@ -7,6 +7,15 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal
 import torch
 import torch.nn.functional as F 
+import sys
+# ensure we are running on the correct gpu
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = "6"  # (xxxx is your specific GPU ID)
+if not torch.cuda.is_available() or torch.cuda.device_count() != 1:
+    print('exiting')
+    sys.exit()
+else:
+    print('GPU is being properly used')
 
 def check_integrity(fpath, md5):
     if not os.path.isfile(fpath):
