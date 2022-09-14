@@ -81,7 +81,7 @@ def train(epoch, train_loader, model, optimizer):
 
     train_acc=float(train_correct)/float(train_total)
     return train_acc
-
+# test
 # Evaluate the Model
 def evaluate(test_loader, model):
     model.eval()    # Change model to 'eval' mode.
