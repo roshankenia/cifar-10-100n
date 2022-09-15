@@ -135,7 +135,7 @@ train_dataset, test_dataset, num_classes, num_training_samples = input_dataset(
     args.dataset, args.noise_type, args.noise_path, args.is_human)
 
 print("aggre:", num_training_samples)
-print(train_dataset)
+print(train_dataset[:500])
 
 clean_train_dataset, clean_test_dataset, clean_num_classes, clean_num_training_samples = input_dataset(
     args.dataset, 'clean_label', args.noise_path, args.is_human)
