@@ -135,14 +135,13 @@ train_dataset, test_dataset, num_classes, num_training_samples = input_dataset(
     args.dataset, args.noise_type, args.noise_path, args.is_human)
 
 print("aggre:", num_training_samples)
+print(train_dataset)
 
 clean_train_dataset, clean_test_dataset, clean_num_classes, clean_num_training_samples = input_dataset(
     args.dataset, 'clean_label', args.noise_path, args.is_human)
 
 print("clean:", clean_num_training_samples)
-
 exit()
-    
 noise_prior = train_dataset.noise_prior
 noise_or_not = train_dataset.noise_or_not
 print('train_labels:', len(train_dataset.train_labels),
