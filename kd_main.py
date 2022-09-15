@@ -7,6 +7,7 @@ from data.datasets import input_dataset
 from models import *
 import argparse
 import sys
+from scipy.stats import entropy
 # ensure we are running on the correct gpu
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "6"  # (xxxx is your specific GPU ID)
@@ -59,7 +60,19 @@ def accuracy(logit, target, topk=(1,)):
 # Train the Model
 
 
-def train(epoch, train_loader, model, optimizer):
+def calculate_entropy(logits):
+    # make prediction
+    predictions = torch.sigmoid(logits)
+    entropies = []
+
+    # calculate entropy for each prediction
+    for prediction in predictions:
+        entropies.append(entropy(prediction))
+
+    return entropies
+
+
+def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, student_optimizer):
     train_total = 0
     train_correct = 0
 
@@ -71,7 +84,23 @@ def train(epoch, train_loader, model, optimizer):
         labels = Variable(labels).cuda()
 
         # Forward + Backward + Optimize
-        logits = model(images)
+        teacher_logits = teacher_model(images)
+        student_logits = student_model(images)
+
+        # obtain entropies
+        teacher_entropies = calculate_entropy(teacher_logits)
+        student_entropies = calculate_entropy(student_logits)
+
+        teacher_entropy_sorted, teacher_entropy_indexes = torch.sort(teacher_entropies)
+        student_entropy_sorted, student_entropy_indexes = torch.sort(student_entropies)
+
+        num_use = int(.25*len(indexes))
+
+        teacher_entropy_sorted = teacher_entropy_sorted[len(teacher_entropy_sorted)-num_use:]
+        teacher_entropy_indexes = teacher_entropy_indexes[len(teacher_entropy_indexes)-num_use:]
+        student_entropy_sorted = student_entropy_sorted[len(student_entropy_sorted)-num_use:]
+        student_entropy_indexes = student_entropy_indexes[len(student_entropy_indexes)-num_use:]
+
 
         prec, _ = accuracy(logits, labels, topk=(1, 5))
         # prec = 0.0
@@ -134,16 +163,27 @@ if args.noise_path is None:
 train_dataset, test_dataset, num_classes, num_training_samples = input_dataset(
     args.dataset, args.noise_type, args.noise_path, args.is_human)
 
+print("aggre:", num_training_samples)
+# print(train_dataset[:500])
+
+# clean_train_dataset, clean_test_dataset, clean_num_classes, clean_num_training_samples = input_dataset(
+#     args.dataset, 'clean_label', args.noise_path, args.is_human)
+
+# print("clean:", clean_num_training_samples)
+# exit()
 noise_prior = train_dataset.noise_prior
 noise_or_not = train_dataset.noise_or_not
 print('train_labels:', len(train_dataset.train_labels),
       train_dataset.train_labels[:10])
 # load model
 print('building model...')
-model = ResNet34(num_classes)
+teacher_model = ResNet34(num_classes)
+student_model = ResNet34(num_classes)
 print('building model done')
-optimizer = torch.optim.SGD(
-    model.parameters(), lr=learning_rate, weight_decay=0.0005, momentum=0.9)
+teacher_optimizer = torch.optim.SGD(
+    teacher_model.parameters(), lr=learning_rate, weight_decay=0.0005, momentum=0.9)
+student_optimizer = torch.optim.SGD(
+    student_model.parameters(), lr=learning_rate, weight_decay=0.0005, momentum=0.9)
 
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                            batch_size=128,
@@ -156,22 +196,32 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           num_workers=args.num_workers,
                                           shuffle=False)
 alpha_plan = [0.1] * 60 + [0.01] * 40
-model.cuda()
+student_model.cuda()
+teacher_model.cuda()
 
 
 epoch = 0
-train_acc = 0
+teacher_train_acc = 0
+student_test_acc = 0
 
 # training
 noise_prior_cur = noise_prior
 for epoch in range(args.n_epoch):
     # train models
     print(f'epoch {epoch}')
-    adjust_learning_rate(optimizer, epoch, alpha_plan)
-    model.train()
-    train_acc = train(epoch, train_loader, model, optimizer)
+    adjust_learning_rate(teacher_model, epoch, alpha_plan)
+    adjust_learning_rate(student_model, epoch, alpha_plan)
+    teacher_model.train()
+    student_model.train()
+
+    student_train_acc = train(epoch, train_loader, teacher_model,
+                              teacher_optimizer, student_model, student_optimizer)
     # evaluate models
-    test_acc = evaluate(test_loader=test_loader, model=model)
+    teacher_test_acc = evaluate(test_loader=test_loader, model=teacher_model)
+    student_test_acc = evaluate(test_loader=test_loader, model=student_model)
     # save results
-    print('train acc on train images is ', train_acc)
-    print('test acc on test images is ', test_acc)
+    print('teacher train acc on train images is ', teacher_train_acc)
+    print('teacher test acc on test images is ', teacher_test_acc)
+
+    print('\nstudent train acc on train images is ', student_train_acc)
+    print('student test acc on test images is ', student_test_acc)
