@@ -73,8 +73,11 @@ def calculate_entropy(logits):
 
 
 def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, student_optimizer):
-    train_total = 0
-    train_correct = 0
+    teacher_train_total = 0
+    teacher_train_correct = 0
+
+    student_train_total = 0
+    student_train_correct = 0
 
     for i, (images, labels, indexes) in enumerate(train_loader):
         ind = indexes.cpu().numpy().transpose()
@@ -91,32 +94,61 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         teacher_entropies = calculate_entropy(teacher_logits)
         student_entropies = calculate_entropy(student_logits)
 
-        teacher_entropy_sorted, teacher_entropy_indexes = torch.sort(teacher_entropies)
-        student_entropy_sorted, student_entropy_indexes = torch.sort(student_entropies)
+        # sort
+        teacher_entropy_sorted, teacher_entropy_indexes = torch.sort(
+            teacher_entropies)
+        student_entropy_sorted, student_entropy_indexes = torch.sort(
+            student_entropies)
+        # calculate number to use
+        num_use = int(.5*len(indexes))
+        # select samples with lowest entropy
+        teacher_entropy_sorted = teacher_entropy_sorted[0:num_use]
+        teacher_entropy_indexes = teacher_entropy_indexes[0:num_use]
+        student_entropy_sorted = student_entropy_sorted[0:num_use]
+        student_entropy_indexes = student_entropy_indexes[0:num_use]
 
-        num_use = int(.25*len(indexes))
+        # find indexes in common
+        entropy_in_common = [
+            ind for ind in teacher_entropy_indexes if ind in student_entropy_indexes]
+        entropy_unlabeled = [
+            ind for ind in indexes if ind not in entropy_in_common]
+        # only update teacher based on these in common
+        print('Teacher being trained on:', len(entropy_in_common))
 
-        teacher_entropy_sorted = teacher_entropy_sorted[len(teacher_entropy_sorted)-num_use:]
-        teacher_entropy_indexes = teacher_entropy_indexes[len(teacher_entropy_indexes)-num_use:]
-        student_entropy_sorted = student_entropy_sorted[len(student_entropy_sorted)-num_use:]
-        student_entropy_indexes = student_entropy_indexes[len(student_entropy_indexes)-num_use:]
-
-
-        prec, _ = accuracy(logits, labels, topk=(1, 5))
+        teacher_prec, _ = accuracy(teacher_logits, labels, topk=(1, 5))
         # prec = 0.0
-        train_total += 1
-        train_correct += prec
-        loss = F.cross_entropy(logits, labels, reduce=True)
+        teacher_train_total += 1
+        teacher_train_correct += teacher_prec
+        teacher_loss = F.cross_entropy(
+            teacher_logits[entropy_in_common], labels[entropy_in_common], reduce=True)
 
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+        teacher_optimizer.zero_grad()
+        teacher_loss.backward()
+        teacher_optimizer.step()
         if (i+1) % args.print_freq == 0:
-            print('Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, Loss: %.4f'
-                  % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, prec, loss.data))
+            print('Teacher Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, Loss: %.4f'
+                  % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, teacher_prec, teacher_loss.data))
 
-    train_acc = float(train_correct)/float(train_total)
-    return train_acc
+        # update student on all with distillation by teacher
+        teacher_outputs_unlabeled = teacher_model(images[entropy_unlabeled])
+
+        student_prec, _ = accuracy(teacher_logits, labels, topk=(1, 5))
+        # prec = 0.0
+        student_train_total += 1
+        student_train_correct += teacher_prec
+        student_loss = F.cross_entropy(student_logits[entropy_in_common], labels[entropy_in_common], reduce=True) + F.cross_entropy(
+            student_logits[entropy_unlabeled], teacher_outputs_unlabeled[entropy_in_common], reduce=True)
+
+        student_optimizer.zero_grad()
+        student_loss.backward()
+        student_optimizer.step()
+        if (i+1) % args.print_freq == 0:
+            print('Student Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, Loss: %.4f'
+                  % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, student_prec, student_loss.data))
+
+    teacher_train_acc = float(teacher_train_correct)/float(teacher_train_total)
+    student_train_acc = float(student_train_correct)/float(student_train_total)
+    return teacher_train_acc, student_train_acc
 # test
 # Evaluate the Model
 
