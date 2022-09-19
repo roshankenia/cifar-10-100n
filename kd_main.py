@@ -231,7 +231,7 @@ alpha_plan = [0.1] * 60 + [0.01] * 40
 student_model.cuda()
 teacher_model.cuda()
 
-
+print("hello")
 epoch = 0
 teacher_train_acc = 0
 student_test_acc = 0
