@@ -32,7 +32,7 @@ class RandomClean(Dataset):
 
     # support indexing such that dataset[i] can be used to get i-th sample
     def __getitem__(self, index):
-        return self.train_data[index], self.train_labels[index]
+        return self.train_data[index], self.train_labels[index], index
 
     # we can call len(dataset) to return the size
     def __len__(self):
