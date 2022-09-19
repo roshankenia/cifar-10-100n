@@ -2,6 +2,8 @@ from dataclasses import replace
 import torch
 import torchvision
 from torch.utils.data import Dataset, DataLoader
+import torchvision.transforms as transforms
+from PIL import Image
 import numpy as np
 import math
 import os
@@ -32,12 +34,26 @@ class RandomClean(Dataset):
         self.train_data = np.concatenate(self.train_data)
         self.train_data = self.train_data.reshape((1000, 3, 32, 32))
         self.train_data = self.train_data.transpose((0, 2, 3, 1))
+        self.transform = transforms.Compose([
+            transforms.RandomCrop(32, padding=4),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465),
+                                 (0.2023, 0.1994, 0.2010)),
+        ])
 
         print(self.train_data.shape)
 
     # support indexing such that dataset[i] can be used to get i-th sample
     def __getitem__(self, index):
-        return self.train_data[index], self.train_labels[index], index
+        # doing this so that it is consistent with all other datasets
+        # to return a PIL Image
+        img = Image.fromarray(self.train_data[index])
+
+        if self.transform is not None:
+            img = self.transform(img)
+
+        return img, self.train_labels[index], index
 
     # we can call len(dataset) to return the size
     def __len__(self):
