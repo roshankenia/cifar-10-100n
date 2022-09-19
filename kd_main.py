@@ -74,6 +74,55 @@ def calculate_entropy(logits):
     return entropies
 
 
+def pre_train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, student_optimizer):
+    teacher_train_total = 0
+    teacher_train_correct = 0
+
+    student_train_total = 0
+    student_train_correct = 0
+
+    for i, (images, labels, indexes) in enumerate(train_loader):
+        ind = indexes.cpu().numpy().transpose()
+        batch_size = len(ind)
+
+        images = Variable(images).cuda()
+        labels = Variable(labels).cuda()
+
+        # Forward + Backward + Optimize
+        teacher_logits = teacher_model(images)
+        student_logits = student_model(images)
+
+        teacher_prec, _ = accuracy(teacher_logits, labels, topk=(1, 5))
+        # prec = 0.0
+        teacher_train_total += 1
+        teacher_train_correct += teacher_prec
+        teacher_loss = F.cross_entropy(teacher_logits, labels, reduce=True)
+
+        teacher_optimizer.zero_grad()
+        teacher_loss.backward()
+        teacher_optimizer.step()
+        if (i+1) % args.print_freq == 0:
+            print('Teacher Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, Loss: %.4f'
+                  % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, teacher_prec, teacher_loss.data))
+
+        student_prec, _ = accuracy(student_logits, labels, topk=(1, 5))
+        # prec = 0.0
+        student_train_total += 1
+        student_train_correct += student_prec
+
+        student_loss = F.cross_entropy(student_logits, labels, reduce=True)
+        student_optimizer.zero_grad()
+        student_loss.backward()
+        student_optimizer.step()
+        if (i+1) % args.print_freq == 0:
+            print('Student Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, Loss: %.4f'
+                  % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, student_prec, student_loss.data))
+
+    teacher_train_acc = float(teacher_train_correct)/float(teacher_train_total)
+    student_train_acc = float(student_train_correct)/float(student_train_total)
+    return teacher_train_acc, student_train_acc
+
+
 def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, student_optimizer):
     teacher_train_total = 0
     teacher_train_correct = 0
@@ -248,8 +297,12 @@ for epoch in range(args.n_epoch):
     teacher_model.train()
     student_model.train()
 
-    teacher_train_acc, student_train_acc = train(epoch, train_loader, teacher_model,
-                                                 teacher_optimizer, student_model, student_optimizer)
+    if epoch < 5:
+        teacher_train_acc, student_train_acc = pre_train(epoch, train_loader, teacher_model,
+                                                         teacher_optimizer, student_model, student_optimizer)
+    else:
+        teacher_train_acc, student_train_acc = train(epoch, train_loader, teacher_model,
+                                                     teacher_optimizer, student_model, student_optimizer)
     # evaluate models
     teacher_test_acc = evaluate(test_loader=test_loader, model=teacher_model)
     student_test_acc = evaluate(test_loader=test_loader, model=student_model)
