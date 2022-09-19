@@ -141,7 +141,8 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
 
         s_logits = torch.cat(
             (student_logits[entropy_in_common], student_logits[entropy_unlabeled]))
-        print(labels[entropy_in_common])
+        print(torch.nn.functional.one_hot(
+            labels[entropy_in_common], num_classes=10))
         print(teacher_outputs_unlabeled[entropy_unlabeled])
         s_labels = torch.cat(
             (labels[entropy_in_common], teacher_outputs_unlabeled[entropy_unlabeled]))
