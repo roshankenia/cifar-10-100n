@@ -133,6 +133,7 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         # prec = 0.0
         student_train_total += 1
         student_train_correct += student_prec
+        print(indexes)
         print(entropy_in_common)
         print(entropy_unlabeled)
         print(student_logits[entropy_in_common].shape)
