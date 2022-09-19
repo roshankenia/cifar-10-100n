@@ -105,10 +105,10 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         student_entropy_indexes = student_entropy_indexes[0:num_use]
 
         # find indexes in common
-        entropy_in_common = [
-            ind for ind in teacher_entropy_indexes if ind in student_entropy_indexes]
-        entropy_unlabeled = [
-            ind for ind in indexes if ind not in entropy_in_common]
+        entropy_in_common = torch.Tensor([
+            ind for ind in teacher_entropy_indexes if ind in student_entropy_indexes])
+        entropy_unlabeled = torch.Tensor([
+            ind for ind in indexes if ind not in entropy_in_common])
         # only update teacher based on these in common
         print('Teacher being trained on:', len(entropy_in_common))
 
