@@ -155,7 +155,7 @@ teacher_optimizer = torch.optim.SGD(
     teacher_model.parameters(), lr=learning_rate, weight_decay=0.0005, momentum=0.9)
 
 train_loader = torch.utils.data.DataLoader(dataset=small_clean,
-                                           batch_size=64,
+                                           batch_size=128,
                                            num_workers=args.num_workers,
                                            shuffle=True)
 
@@ -179,7 +179,7 @@ for epoch in range(args.n_epoch):
     adjust_learning_rate(teacher_optimizer, epoch, alpha_plan)
     teacher_model.train()
 
-    teacher_train_acc, student_train_acc = teacher_train(
+    teacher_train_acc, teacher_train(
         epoch, train_loader, teacher_model, teacher_optimizer)
 
     # evaluate models
