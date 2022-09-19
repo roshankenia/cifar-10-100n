@@ -28,7 +28,6 @@ class RandomClean(Dataset):
             a=train_data.shape[0], size=1000, replace=False)
         self.train_data = [train_data[ind] for ind in rand_selection]
         self.train_labels = [train_labels[ind] for ind in rand_selection]
-        print(self.train_labels)
         self.n_samples = len(rand_selection)
 
     # support indexing such that dataset[i] can be used to get i-th sample

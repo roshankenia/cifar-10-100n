@@ -63,67 +63,6 @@ def accuracy(logit, target, topk=(1,)):
 # Train the Model
 
 
-def calculate_entropy(logits):
-    # make prediction
-    predictions = torch.sigmoid(logits)
-    entropies = []
-
-    # calculate entropy for each prediction
-    for prediction in predictions:
-        entropies.append(entropy(prediction))
-
-    return entropies
-
-
-def pre_train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, student_optimizer):
-    teacher_train_total = 0
-    teacher_train_correct = 0
-
-    student_train_total = 0
-    student_train_correct = 0
-
-    for i, (images, labels, indexes) in enumerate(train_loader):
-        ind = indexes.cpu().numpy().transpose()
-        batch_size = len(ind)
-
-        images = Variable(images).cuda()
-        labels = Variable(labels).cuda()
-
-        # Forward + Backward + Optimize
-        teacher_logits = teacher_model(images)
-        student_logits = student_model(images)
-
-        teacher_prec, _ = accuracy(teacher_logits, labels, topk=(1, 5))
-        # prec = 0.0
-        teacher_train_total += 1
-        teacher_train_correct += teacher_prec
-        teacher_loss = F.cross_entropy(teacher_logits, labels, reduce=True)
-
-        teacher_optimizer.zero_grad()
-        teacher_loss.backward()
-        teacher_optimizer.step()
-        if (i+1) % args.print_freq == 0:
-            print('Teacher Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, Loss: %.4f'
-                  % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, teacher_prec, teacher_loss.data))
-
-        student_prec, _ = accuracy(student_logits, labels, topk=(1, 5))
-        # prec = 0.0
-        student_train_total += 1
-        student_train_correct += student_prec
-
-        student_loss = F.cross_entropy(student_logits, labels, reduce=True)
-        student_optimizer.zero_grad()
-        student_loss.backward()
-        student_optimizer.step()
-        if (i+1) % args.print_freq == 0:
-            print('Student Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, Loss: %.4f'
-                  % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, student_prec, student_loss.data))
-
-    teacher_train_acc = float(teacher_train_correct)/float(teacher_train_total)
-    student_train_acc = float(student_train_correct)/float(student_train_total)
-    return teacher_train_acc, student_train_acc
-
-
 def teacher_train(epoch, train_loader, model, optimizer):
     train_total = 0
     train_correct = 0
@@ -154,49 +93,6 @@ def teacher_train(epoch, train_loader, model, optimizer):
     train_acc = float(train_correct)/float(train_total)
     return train_acc
 
-
-def student_train(epoch, train_loader, teacher_model, student_model, student_optimizer):
-    teacher_train_total = 0
-    teacher_train_correct = 0
-
-    student_train_total = 0
-    student_train_correct = 0
-
-    for i, (images, labels, indexes) in enumerate(train_loader):
-        ind = indexes.cpu().numpy().transpose()
-        batch_size = len(ind)
-
-        images = Variable(images).cuda()
-        labels = Variable(labels).cuda()
-
-        # Forward + Backward + Optimize
-        student_logits = student_model(images)
-
-        # update student on all with distillation by teacher
-        teacher_outputs = teacher_model(images)
-
-        # blend labels
-        new_labels = .75 * \
-            torch.nn.functional.one_hot(
-                labels, num_classes=10) + .25 * teacher_outputs
-
-        student_prec, _ = accuracy(student_logits, labels, topk=(1, 5))
-        # prec = 0.0
-        student_train_total += 1
-        student_train_correct += student_prec
-
-        student_loss = F.cross_entropy(student_logits, new_labels, reduce=True)
-        student_optimizer.zero_grad()
-        student_loss.backward()
-        student_optimizer.step()
-        if (i+1) % args.print_freq == 0:
-            print('Student Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, Loss: %.4f'
-                  % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, student_prec, student_loss.data))
-
-    teacher_train_acc = float(teacher_train_correct)/float(teacher_train_total)
-    student_train_acc = float(student_train_correct)/float(student_train_total)
-    return teacher_train_acc, student_train_acc
-# test
 # Evaluate the Model
 
 
@@ -251,32 +147,25 @@ clean_train_dataset, clean_test_dataset, clean_num_classes, clean_num_training_s
 small_clean = RandomClean(clean_train_dataset.train_data,
                           clean_train_dataset.train_labels)
 
-noise_prior = train_dataset.noise_prior
-noise_or_not = train_dataset.noise_or_not
-print('train_labels:', len(train_dataset.train_labels),
-      train_dataset.train_labels[:10])
-# load model
+
 print('building model...')
 teacher_model = ResNet34(num_classes)
-student_model = ResNet34(num_classes)
 print('building model done')
 teacher_optimizer = torch.optim.SGD(
     teacher_model.parameters(), lr=learning_rate, weight_decay=0.0005, momentum=0.9)
-student_optimizer = torch.optim.SGD(
-    student_model.parameters(), lr=learning_rate, weight_decay=0.0005, momentum=0.9)
 
-train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
-                                           batch_size=128,
+train_loader = torch.utils.data.DataLoader(dataset=small_clean,
+                                           batch_size=64,
                                            num_workers=args.num_workers,
                                            shuffle=True)
 
 
-test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
+test_loader = torch.utils.data.DataLoader(dataset=clean_test_dataset,
                                           batch_size=64,
                                           num_workers=args.num_workers,
                                           shuffle=False)
+
 alpha_plan = [0.1] * 60 + [0.01] * 40
-student_model.cuda()
 teacher_model.cuda()
 
 epoch = 0
@@ -284,27 +173,19 @@ teacher_train_acc = 0
 student_test_acc = 0
 
 # training
-noise_prior_cur = noise_prior
 for epoch in range(args.n_epoch):
     # train models
     print(f'epoch {epoch}')
     adjust_learning_rate(teacher_optimizer, epoch, alpha_plan)
-    adjust_learning_rate(student_optimizer, epoch, alpha_plan)
     teacher_model.train()
-    student_model.train()
 
-    if epoch < 5:
-        teacher_train_acc, student_train_acc = pre_train(epoch, train_loader, teacher_model,
-                                                         teacher_optimizer, student_model, student_optimizer)
-    else:
-        teacher_train_acc, student_train_acc = train(epoch, train_loader, teacher_model,
-                                                     teacher_optimizer, student_model, student_optimizer)
+    teacher_train_acc, student_train_acc = teacher_train(
+        epoch, train_loader, teacher_model, teacher_optimizer)
+
     # evaluate models
     teacher_test_acc = evaluate(test_loader=test_loader, model=teacher_model)
-    student_test_acc = evaluate(test_loader=test_loader, model=student_model)
     # save results
     print('teacher train acc on train images is ', teacher_train_acc)
     print('teacher test acc on test images is ', teacher_test_acc)
 
-    print('\nstudent train acc on train images is ', student_train_acc)
-    print('student test acc on test images is ', student_test_acc)
+teacher_model.save(teacher_model.state_dict(), 'teacher_model.pt')
