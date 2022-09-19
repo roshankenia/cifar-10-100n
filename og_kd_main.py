@@ -9,6 +9,7 @@ from models import *
 import argparse
 import sys
 from scipy.stats import entropy
+from data.SmallClean import RandomClean
 # ensure we are running on the correct gpu
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "6"  # (xxxx is your specific GPU ID)
@@ -248,6 +249,9 @@ clean_train_dataset, clean_test_dataset, clean_num_classes, clean_num_training_s
     args.dataset, 'clean_label', args.noise_path, args.is_human)
 
 print("clean:", clean_train_dataset.train_labels)
+
+small_clean = RandomClean(clean_train_dataset.train_data,
+                          clean_train_dataset.train_labels)
 exit()
 noise_prior = train_dataset.noise_prior
 noise_or_not = train_dataset.noise_or_not
