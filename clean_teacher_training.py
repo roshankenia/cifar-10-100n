@@ -67,9 +67,9 @@ def teacher_train(epoch, train_loader, model, optimizer):
     train_total = 0
     train_correct = 0
 
-    for i, (images, labels, indexes) in enumerate(train_loader):
-        ind = indexes.cpu().numpy().transpose()
-        batch_size = len(ind)
+    for i, (images, labels) in enumerate(train_loader):
+        # ind = indexes.cpu().numpy().transpose()
+        batch_size = len(labels)
 
         images = Variable(images).cuda()
         labels = Variable(labels).cuda()
