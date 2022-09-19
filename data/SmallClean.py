@@ -27,7 +27,7 @@ class RandomClean(Dataset):
 
         # find which random samples to use
         rand_selection = np.random.choice(
-            a=train_data.shape[0], size=1000, replace=False)
+            a=train_data.shape[0], size=5000, replace=False)
         self.train_data = [train_data[ind] for ind in rand_selection]
         self.train_labels = [train_labels[ind] for ind in rand_selection]
         self.n_samples = len(rand_selection)
