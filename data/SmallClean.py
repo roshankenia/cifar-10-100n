@@ -26,10 +26,10 @@ class RandomClean(Dataset):
         # find which random samples to use
         # rand_selection = np.random.choice(
         #     a=train_data.shape[0], size=1000, replace=False)
-        rand_selection = torch.randperm(len(train_data))[:1000]
+        rand_selection = (torch.randperm(len(train_data))[:1000]).tolist()
         print(rand_selection)
-        self.train_data = train_data[rand_selection.to(dtype=torch.long)]
-        self.train_labels = train_labels[rand_selection.to(dtype=torch.long)]
+        self.train_data = train_data[rand_selection]
+        self.train_labels = train_labels[rand_selection]
         self.n_samples = len(rand_selection)
 
     # support indexing such that dataset[i] can be used to get i-th sample
