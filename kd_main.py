@@ -246,7 +246,7 @@ for epoch in range(args.n_epoch):
     teacher_model.train()
     student_model.train()
 
-    student_train_acc = train(epoch, train_loader, teacher_model,
+    teacher_train_acc, student_train_acc = train(epoch, train_loader, teacher_model,
                               teacher_optimizer, student_model, student_optimizer)
     # evaluate models
     teacher_test_acc = evaluate(test_loader=test_loader, model=teacher_model)
