@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import os
+import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.autograd import Variable
@@ -95,16 +96,12 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         student_entropies = calculate_entropy(student_logits.detach().cpu())
 
         # sort
-        teacher_entropy_sorted, teacher_entropy_indexes = torch.sort(
-            teacher_entropies)
-        student_entropy_sorted, student_entropy_indexes = torch.sort(
-            student_entropies)
+        teacher_entropy_indexes = np.argsort(teacher_entropies)
+        student_entropy_indexes = np.argsort(student_entropies)
         # calculate number to use
         num_use = int(.5*len(indexes))
         # select samples with lowest entropy
-        teacher_entropy_sorted = teacher_entropy_sorted[0:num_use]
         teacher_entropy_indexes = teacher_entropy_indexes[0:num_use]
-        student_entropy_sorted = student_entropy_sorted[0:num_use]
         student_entropy_indexes = student_entropy_indexes[0:num_use]
 
         # find indexes in common
