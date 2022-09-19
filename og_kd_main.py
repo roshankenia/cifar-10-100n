@@ -248,8 +248,6 @@ print("aggre:", num_training_samples)
 clean_train_dataset, clean_test_dataset, clean_num_classes, clean_num_training_samples = input_dataset(
     args.dataset, 'clean_label', args.noise_path, args.is_human)
 
-print("clean:", clean_train_dataset.train_labels)
-
 small_clean = RandomClean(clean_train_dataset.train_data,
                           clean_train_dataset.train_labels)
 exit()

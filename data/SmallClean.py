@@ -24,8 +24,9 @@ class RandomClean(Dataset):
         # Initialize data, download, etc.
 
         # find which random samples to use
-        rand_selection = np.random.choice(
-            a=train_data.shape[0], size=1000, replace=False)
+        # rand_selection = np.random.choice(
+        #     a=train_data.shape[0], size=1000, replace=False)
+        rand_selection = torch.randperm(len(train_data))[:1000]
         print(rand_selection)
         self.train_data = train_data[rand_selection]
         self.train_labels = train_labels[rand_selection]
