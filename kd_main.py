@@ -133,8 +133,11 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         # prec = 0.0
         student_train_total += 1
         student_train_correct += student_prec
-        student_loss = F.cross_entropy(torch.cat((student_logits[entropy_in_common], student_logits[entropy_unlabeled])), torch.cat(
-            (labels[entropy_in_common], teacher_outputs_unlabeled)), reduce=True)
+        s_logits = torch.cat(
+            (student_logits[entropy_in_common], student_logits[entropy_unlabeled]))
+        s_labels = torch.cat(
+            (labels[entropy_in_common], teacher_outputs_unlabeled))
+        student_loss = F.cross_entropy(s_logits, s_labels, reduce=True)
         student_optimizer.zero_grad()
         student_loss.backward()
         student_optimizer.step()
