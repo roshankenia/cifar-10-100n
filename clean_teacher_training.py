@@ -175,13 +175,13 @@ student_test_acc = 0
 print(clean_train_dataset.train_data.shape)
 
 # training
-for epoch in range(args.n_epoch):
+for epoch in range(50):
     # train models
     print(f'epoch {epoch}')
     adjust_learning_rate(teacher_optimizer, epoch, alpha_plan)
     teacher_model.train()
 
-    teacher_train_acc, teacher_train(
+    teacher_train_acc = teacher_train(
         epoch, train_loader, teacher_model, teacher_optimizer)
 
     # evaluate models
