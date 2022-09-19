@@ -109,6 +109,7 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         # find indexes in common
         entropy_in_common = [
             ind for ind in teacher_entropy_indexes if ind in student_entropy_indexes]
+        tc = entropy_in_common.copy()
         entropy_unlabeled = [
             ind for ind in indexes if ind not in entropy_in_common]
         # only update teacher based on these in common
@@ -138,8 +139,8 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         print(indexes)
         print(entropy_in_common)
         print(entropy_unlabeled)
-        print(labels[entropy_in_common])
-        print(student_logits[entropy_unlabeled])
+        print(labels[tc])
+        print(student_logits[tc])
 
         s_logits = torch.cat(
             (student_logits[entropy_in_common], student_logits[entropy_unlabeled]))
