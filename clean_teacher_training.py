@@ -190,4 +190,4 @@ for epoch in range(50):
     print('teacher train acc on train images is ', teacher_train_acc)
     print('teacher test acc on test images is ', teacher_test_acc)
 
-teacher_model.save(teacher_model.state_dict(), 'teacher_model.pt')
+teacher_model.save(teacher_model, 'teacher_model.pt')
