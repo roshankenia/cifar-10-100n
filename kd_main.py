@@ -109,11 +109,12 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         # find indexes in common
         entropy_in_common = [
             ind for ind in teacher_entropy_indexes if ind in student_entropy_indexes]
-        tc = entropy_in_common.copy()
         entropy_unlabeled = [
             ind for ind in indexes if ind not in entropy_in_common]
         # only update teacher based on these in common
         print('Teacher being trained on:', len(entropy_in_common),'out of:', len(indexes))
+
+        print(student_logits[entropy_in_common])
 
         teacher_prec, _ = accuracy(teacher_logits, labels, topk=(1, 5))
         # prec = 0.0
@@ -136,11 +137,6 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         # prec = 0.0
         student_train_total += 1
         student_train_correct += student_prec
-        print(indexes)
-        print(entropy_in_common)
-        print(entropy_unlabeled)
-        print(labels[tc])
-        print(student_logits[tc])
 
         s_logits = torch.cat(
             (student_logits[entropy_in_common], student_logits[entropy_unlabeled]))
