@@ -31,7 +31,6 @@ class RandomClean(Dataset):
         self.n_samples = len(rand_selection)
         self.train_data = np.concatenate(self.train_data)
         self.train_data = self.train_data.reshape((1000, 3, 32, 32))
-        self.train_data = self.train_data.transpose((0, 2, 3, 1))
 
         print(self.train_data.shape)
 
