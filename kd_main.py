@@ -103,6 +103,8 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         # select samples with lowest entropy
         teacher_entropy_indexes = teacher_entropy_indexes[0:num_use]
         student_entropy_indexes = student_entropy_indexes[0:num_use]
+        print(teacher_entropy_indexes)
+        print(student_entropy_indexes)
 
         # find indexes in common
         entropy_in_common = [
