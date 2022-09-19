@@ -129,12 +129,12 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         # update student on all with distillation by teacher
         teacher_outputs_unlabeled = teacher_model(images[entropy_unlabeled])
 
-        student_prec, _ = accuracy(teacher_logits, labels, topk=(1, 5))
+        student_prec, _ = accuracy(student_logits, labels, topk=(1, 5))
         # prec = 0.0
         student_train_total += 1
         student_train_correct += teacher_prec
         student_loss = F.cross_entropy(student_logits[entropy_in_common], labels[entropy_in_common], reduce=True) + F.cross_entropy(
-            student_logits[entropy_unlabeled], teacher_outputs_unlabeled[entropy_in_common], reduce=True)
+            student_logits[entropy_unlabeled], teacher_outputs_unlabeled, reduce=True)
 
         student_optimizer.zero_grad()
         student_loss.backward()
