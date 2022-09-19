@@ -104,18 +104,18 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         # select samples with lowest entropy
         teacher_entropy_indexes = teacher_entropy_indexes[0:num_use]
         student_entropy_indexes = student_entropy_indexes[0:num_use]
-        print(teacher_entropy_indexes)
-        print(student_entropy_indexes)
 
         # find indexes in common
-        entropy_in_common = [
-            ind for ind in teacher_entropy_indexes if ind in student_entropy_indexes]
-        entropy_unlabeled = [
-            ind for ind in indexes if ind not in entropy_in_common]
+        entropy_in_common = []
+        entropy_unlabeled = []
+        for ind in range(len(indexes)):
+            if ind in teacher_entropy_indexes and ind in student_entropy_indexes:
+                entropy_in_common.append(ind)
+            else:
+                entropy_unlabeled.append(ind)
         # only update teacher based on these in common
-        print('Teacher being trained on:', len(entropy_in_common),'out of:', len(indexes))
-
-        print(student_logits[entropy_in_common])
+        print('Teacher being trained on:', len(
+            entropy_in_common), 'out of:', len(indexes))
 
         teacher_prec, _ = accuracy(teacher_logits, labels, topk=(1, 5))
         # prec = 0.0
