@@ -114,8 +114,8 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
             else:
                 entropy_unlabeled.append(ind)
         # only update teacher based on these in common
-        print('Teacher being trained on:', len(
-            entropy_in_common), 'out of:', len(indexes))
+        # print('Teacher being trained on:', len(
+        #     entropy_in_common), 'out of:', len(indexes))
 
         teacher_prec, _ = accuracy(teacher_logits, labels, topk=(1, 5))
         # prec = 0.0
@@ -139,11 +139,8 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         student_train_total += 1
         student_train_correct += student_prec
 
-        s_logits = torch.cat(
-            (student_logits[entropy_in_common], student_logits[entropy_unlabeled]))
-        s_labels = torch.cat((torch.nn.functional.one_hot(
-            labels[entropy_in_common], num_classes=10), teacher_outputs_unlabeled[entropy_unlabeled]))
-        student_loss = F.cross_entropy(s_logits, s_labels, reduce=True)
+        student_loss = F.cross_entropy(student_logits[entropy_in_common], labels[entropy_in_common], reduce=True) + F.cross_entropy(
+            student_logits[entropy_unlabeled], teacher_outputs_unlabeled[entropy_unlabeled], reduce=True)
         student_optimizer.zero_grad()
         student_loss.backward()
         student_optimizer.step()
