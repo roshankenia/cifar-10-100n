@@ -172,6 +172,8 @@ epoch = 0
 teacher_train_acc = 0
 student_test_acc = 0
 
+print(clean_train_dataset.train_data)
+
 # training
 for epoch in range(args.n_epoch):
     # train models
