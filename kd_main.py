@@ -241,8 +241,8 @@ noise_prior_cur = noise_prior
 for epoch in range(args.n_epoch):
     # train models
     print(f'epoch {epoch}')
-    adjust_learning_rate(teacher_model, epoch, alpha_plan)
-    adjust_learning_rate(student_model, epoch, alpha_plan)
+    adjust_learning_rate(teacher_optimizer, epoch, alpha_plan)
+    adjust_learning_rate(student_optimizer, epoch, alpha_plan)
     teacher_model.train()
     student_model.train()
 
