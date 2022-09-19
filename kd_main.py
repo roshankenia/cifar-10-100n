@@ -91,8 +91,8 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         student_logits = student_model(images)
 
         # obtain entropies
-        teacher_entropies = calculate_entropy(teacher_logits)
-        student_entropies = calculate_entropy(student_logits)
+        teacher_entropies = calculate_entropy(teacher_logits.detach().cpu())
+        student_entropies = calculate_entropy(student_logits.detach().cpu())
 
         # sort
         teacher_entropy_sorted, teacher_entropy_indexes = torch.sort(
