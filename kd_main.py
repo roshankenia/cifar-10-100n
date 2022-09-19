@@ -133,6 +133,9 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         # prec = 0.0
         student_train_total += 1
         student_train_correct += student_prec
+        print(s_logits.shape)
+        print(s_labels.shape)
+
         s_logits = torch.cat(
             (student_logits[entropy_in_common], student_logits[entropy_unlabeled]))
         s_labels = torch.cat(
