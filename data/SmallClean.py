@@ -30,6 +30,9 @@ class RandomClean(Dataset):
         self.train_labels = [train_labels[ind] for ind in rand_selection]
         self.n_samples = len(rand_selection)
 
+        self.train_data = self.train_data.reshape((1000, 3, 32, 32))
+        self.train_data = self.train_data.transpose((0, 2, 3, 1))
+
     # support indexing such that dataset[i] can be used to get i-th sample
     def __getitem__(self, index):
         return self.train_data[index], self.train_labels[index], index
