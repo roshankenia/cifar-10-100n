@@ -175,7 +175,7 @@ def student_train(epoch, train_loader, teacher_model, student_model, student_opt
         # blend labels
         new_labels = .75 * \
             torch.nn.functional.one_hot(
-                labels, num_classes=10) + .25 * teacher_outputs
+                labels, num_classes=10) + .25 * F.softmax(teacher_outputs, dim=1)
         print(new_labels)
 
         student_prec, _ = accuracy(student_logits, labels, topk=(1, 5))
