@@ -176,7 +176,6 @@ def student_train(epoch, train_loader, teacher_model, student_model, student_opt
         new_labels = .75 * \
             torch.nn.functional.one_hot(
                 labels, num_classes=10) + .25 * F.softmax(teacher_outputs, dim=1)
-        print(new_labels)
 
         student_prec, _ = accuracy(student_logits, labels, topk=(1, 5))
         # prec = 0.0
