@@ -155,13 +155,8 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         student_entropy_indexes = student_entropy_indexes[0:num_use]
 
         # find indexes in common
-        entropy_in_common = []
-        entropy_unlabeled = []
-        for ind in range(len(indexes)):
-            if ind in teacher_entropy_indexes and ind in student_entropy_indexes:
-                entropy_in_common.append(ind)
-            else:
-                entropy_unlabeled.append(ind)
+        entropy_in_common = [
+            ind for ind in teacher_entropy_indexes if ind in student_entropy_indexes]
         # only update teacher based on these in common
         # print('Teacher being trained on:', len(
         #     entropy_in_common), 'out of:', len(indexes))
@@ -181,15 +176,18 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
                   % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, teacher_prec, teacher_loss.data))
 
         # update student on all with distillation by teacher
-        teacher_outputs_unlabeled = teacher_model(images)
+        teacher_outputs = teacher_model(images)
 
         student_prec, _ = accuracy(student_logits, labels, topk=(1, 5))
         # prec = 0.0
         student_train_total += 1
         student_train_correct += student_prec
 
-        student_loss = F.cross_entropy(student_logits[entropy_in_common], labels[entropy_in_common], reduce=True) + F.cross_entropy(
-            student_logits[entropy_unlabeled], torch.argmax(teacher_outputs_unlabeled[entropy_unlabeled], dim=1), reduce=True)
+        new_labels = .75 * \
+            torch.nn.functional.one_hot(
+                labels, num_classes=10) + .25 * F.softmax(teacher_outputs, dim=1)
+
+        student_loss = F.cross_entropy(student_logits, new_labels, reduce=True)
         student_optimizer.zero_grad()
         student_loss.backward()
         student_optimizer.step()
