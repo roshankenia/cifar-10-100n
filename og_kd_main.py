@@ -156,9 +156,6 @@ def teacher_train(epoch, train_loader, model, optimizer):
 
 
 def student_train(epoch, train_loader, teacher_model, student_model, student_optimizer):
-    teacher_train_total = 0
-    teacher_train_correct = 0
-
     student_train_total = 0
     student_train_correct = 0
 
@@ -193,9 +190,8 @@ def student_train(epoch, train_loader, teacher_model, student_model, student_opt
             print('Student Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, Loss: %.4f'
                   % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, student_prec, student_loss.data))
 
-    teacher_train_acc = float(teacher_train_correct)/float(teacher_train_total)
     student_train_acc = float(student_train_correct)/float(student_train_total)
-    return teacher_train_acc, student_train_acc
+    return student_train_acc
 # test
 # Evaluate the Model
 
@@ -265,6 +261,43 @@ teacher_optimizer = torch.optim.SGD(
 student_optimizer = torch.optim.SGD(
     student_model.parameters(), lr=learning_rate, weight_decay=0.0005, momentum=0.9)
 
+alpha_plan = [0.1] * 60 + [0.01] * 40
+student_model.cuda()
+teacher_model.cuda()
+
+epoch = 0
+teacher_train_acc = 0
+student_test_acc = 0
+
+
+train_loader = torch.utils.data.DataLoader(dataset=small_clean,
+                                           batch_size=128,
+                                           num_workers=args.num_workers,
+                                           shuffle=True)
+
+
+test_loader = torch.utils.data.DataLoader(dataset=clean_test_dataset,
+                                          batch_size=64,
+                                          num_workers=args.num_workers,
+                                          shuffle=False)
+
+# teacher training
+for epoch in range(2):
+    # train models
+    print(f'epoch {epoch}')
+    adjust_learning_rate(teacher_optimizer, epoch, alpha_plan)
+    teacher_model.train()
+
+    teacher_train_acc = teacher_train(
+        epoch, train_loader, teacher_model, teacher_optimizer)
+
+    # evaluate models
+    teacher_test_acc = evaluate(test_loader=test_loader, model=teacher_model)
+    # save results
+    print('teacher train acc on train images is ', teacher_train_acc)
+    print('teacher test acc on test images is ', teacher_test_acc)
+
+
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                            batch_size=128,
                                            num_workers=args.num_workers,
@@ -275,36 +308,20 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           batch_size=64,
                                           num_workers=args.num_workers,
                                           shuffle=False)
-alpha_plan = [0.1] * 60 + [0.01] * 40
-student_model.cuda()
-teacher_model.cuda()
-
-epoch = 0
-teacher_train_acc = 0
-student_test_acc = 0
 
 # training
 noise_prior_cur = noise_prior
 for epoch in range(args.n_epoch):
     # train models
     print(f'epoch {epoch}')
-    adjust_learning_rate(teacher_optimizer, epoch, alpha_plan)
     adjust_learning_rate(student_optimizer, epoch, alpha_plan)
-    teacher_model.train()
+    teacher_model.eval()
     student_model.train()
 
-    if epoch < 5:
-        teacher_train_acc, student_train_acc = pre_train(epoch, train_loader, teacher_model,
-                                                         teacher_optimizer, student_model, student_optimizer)
-    else:
-        teacher_train_acc, student_train_acc = train(epoch, train_loader, teacher_model,
-                                                     teacher_optimizer, student_model, student_optimizer)
+    student_train_acc = student_train(
+        epoch, train_loader, teacher_model, student_model, student_optimizer)
     # evaluate models
-    teacher_test_acc = evaluate(test_loader=test_loader, model=teacher_model)
     student_test_acc = evaluate(test_loader=test_loader, model=student_model)
     # save results
-    print('teacher train acc on train images is ', teacher_train_acc)
-    print('teacher test acc on test images is ', teacher_test_acc)
-
     print('\nstudent train acc on train images is ', student_train_acc)
     print('student test acc on test images is ', student_test_acc)
