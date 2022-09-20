@@ -283,7 +283,7 @@ test_loader = torch.utils.data.DataLoader(dataset=clean_test_dataset,
                                           shuffle=False)
 
 # teacher training
-for epoch in range(50):
+for epoch in range(2):
     # train models
     print(f'epoch {epoch}')
     adjust_learning_rate(teacher_optimizer, epoch, alpha_plan)
