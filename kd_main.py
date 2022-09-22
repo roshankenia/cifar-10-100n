@@ -183,9 +183,9 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         student_train_total += 1
         student_train_correct += student_prec
 
-        new_labels = .5 * \
+        new_labels = .9 * \
             torch.nn.functional.one_hot(
-                labels, num_classes=10) + .5 * F.softmax(teacher_outputs, dim=1)
+                labels, num_classes=10) + .1 * F.softmax(teacher_outputs, dim=1)
 
         student_loss = F.cross_entropy(student_logits, new_labels, reduce=True)
         student_optimizer.zero_grad()
