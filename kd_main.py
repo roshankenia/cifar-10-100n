@@ -191,6 +191,8 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         #update labels
         new_labels = temporal_labels.addLabels(new_labels, indexes)
 
+        print(new_labels)
+
         student_loss = F.cross_entropy(student_logits, new_labels, reduce=True)
         student_optimizer.zero_grad()
         student_loss.backward()
