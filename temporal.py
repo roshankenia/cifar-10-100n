@@ -23,7 +23,7 @@ class TemporalLabels():
 
     def __init__(self, num_samples, num_classes, alpha=0.95):
         # intialize our data arrays
-        self.labels = torch.zeros(num_samples, num_classes)
+        self.labels = torch.zeros(num_samples, num_classes).cuda()
         self.alpha = alpha
 
     def addLabels(self, labels, indices):
