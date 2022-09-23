@@ -189,7 +189,7 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
                 labels, num_classes=10) + .25 * F.softmax(teacher_outputs, dim=1)
 
         #update labels
-        new_labels = temporal_labels.addLabels(new_labels, indexes)
+        new_labels = temporal_labels.addLabels(new_labels.detach(), indexes)
 
         print(new_labels)
 
