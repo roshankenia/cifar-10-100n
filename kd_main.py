@@ -9,6 +9,7 @@ from models import *
 import argparse
 import sys
 from scipy.stats import entropy
+from temporal import TemporalLabels
 # ensure we are running on the correct gpu
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "6"  # (xxxx is your specific GPU ID)
@@ -123,7 +124,7 @@ def pre_train(epoch, train_loader, teacher_model, teacher_optimizer, student_mod
     return teacher_train_acc, student_train_acc
 
 
-def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, student_optimizer):
+def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, student_optimizer, temporal_labels):
     teacher_train_total = 0
     teacher_train_correct = 0
 
@@ -183,9 +184,12 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         student_train_total += 1
         student_train_correct += student_prec
 
-        new_labels = .9 * \
+        new_labels = .75 * \
             torch.nn.functional.one_hot(
-                labels, num_classes=10) + .1 * F.softmax(teacher_outputs, dim=1)
+                labels, num_classes=10) + .25 * F.softmax(teacher_outputs, dim=1)
+
+        #update labels
+        new_labels = temporal_labels.addLabels(new_labels, indexes)
 
         student_loss = F.cross_entropy(student_logits, new_labels, reduce=True)
         student_optimizer.zero_grad()
@@ -285,6 +289,10 @@ epoch = 0
 teacher_train_acc = 0
 student_test_acc = 0
 
+# our temporal label holder
+temporal_labels = TemporalLabels(
+    num_samples=num_training_samples, num_classes=num_classes, alpha=0.95)
+
 # training
 noise_prior_cur = noise_prior
 for epoch in range(args.n_epoch):
@@ -300,7 +308,7 @@ for epoch in range(args.n_epoch):
                                                          teacher_optimizer, student_model, student_optimizer)
     else:
         teacher_train_acc, student_train_acc = train(epoch, train_loader, teacher_model,
-                                                     teacher_optimizer, student_model, student_optimizer)
+                                                     teacher_optimizer, student_model, student_optimizer, temporal_labels)
     # evaluate models
     teacher_test_acc = evaluate(test_loader=test_loader, model=teacher_model)
     student_test_acc = evaluate(test_loader=test_loader, model=student_model)
