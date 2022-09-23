@@ -189,7 +189,7 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
                 labels, num_classes=10) + .25 * F.softmax(teacher_outputs, dim=1)
 
         #update labels
-        new_labels = temporal_labels.addLabels(new_labels.detach(), indexes)
+        new_labels = (temporal_labels.addLabels(new_labels.detach().cpu(), indexes)).cuda()
 
         student_loss = F.cross_entropy(student_logits, new_labels, reduce=True)
         student_optimizer.zero_grad()
@@ -303,11 +303,11 @@ for epoch in range(args.n_epoch):
     teacher_model.train()
     student_model.train()
 
-    if epoch < 5:
-        teacher_train_acc, student_train_acc = pre_train(epoch, train_loader, teacher_model,
-                                                         teacher_optimizer, student_model, student_optimizer)
-    else:
-        teacher_train_acc, student_train_acc = train(epoch, train_loader, teacher_model,
+    # if epoch < 5:
+    #     teacher_train_acc, student_train_acc = pre_train(epoch, train_loader, teacher_model,
+    #                                                      teacher_optimizer, student_model, student_optimizer)
+    # else:
+    teacher_train_acc, student_train_acc = train(epoch, train_loader, teacher_model,
                                                      teacher_optimizer, student_model, student_optimizer, temporal_labels)
     # evaluate models
     teacher_test_acc = evaluate(test_loader=test_loader, model=teacher_model)
