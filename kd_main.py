@@ -167,7 +167,7 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         teacher_train_total += 1
         teacher_train_correct += teacher_prec
         teacher_loss = F.cross_entropy(
-            teacher_logits[entropy_in_common], labels[entropy_in_common], reduce=True)
+            teacher_logits, labels, reduce=True)
 
         teacher_optimizer.zero_grad()
         teacher_loss.backward()
@@ -291,7 +291,7 @@ student_test_acc = 0
 
 # our temporal label holder
 temporal_labels = TemporalLabels(
-    num_samples=num_training_samples, num_classes=num_classes, alpha=0.5)
+    num_samples=num_training_samples, num_classes=num_classes, alpha=0.75)
 
 # training
 noise_prior_cur = noise_prior
