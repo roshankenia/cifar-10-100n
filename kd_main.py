@@ -291,7 +291,7 @@ student_test_acc = 0
 
 # our temporal label holder
 temporal_labels = TemporalLabels(
-    num_samples=num_training_samples, num_classes=num_classes, alpha=0.1)
+    num_samples=num_training_samples, num_classes=num_classes, alpha=0.5)
 
 # training
 noise_prior_cur = noise_prior
