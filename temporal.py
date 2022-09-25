@@ -21,21 +21,23 @@ else:
 
 class TemporalLabels():
 
-    def __init__(self, num_samples, num_classes, alpha=0.95):
+    def __init__(self, num_samples, num_classes, alpha=0.95, pre_train_length=5):
         # intialize our data arrays
         self.labels = torch.zeros(num_samples, num_classes)
         self.alpha = alpha
+        self.pre_train_length = pre_train_length
 
     def addLabels(self, labels, indices, epoch):
         # for each sample update its label in our tensor
+        rel_epoch = epoch - self.pre_train_length
         for i in range(len(indices)):
             index = indices[i]
-            if epoch > 5:
+            if rel_epoch > 0:
                 self.labels[index] = self.alpha * self.labels[index] + \
                     (1-self.alpha)*labels[i]
 
                 # bias correction
-                cor = 1 - self.alpha**epoch
+                cor = 1 - self.alpha**rel_epoch
                 self.labels[index] = self.labels[index]/cor
             else:
                 # base case

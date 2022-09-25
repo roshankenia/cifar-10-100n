@@ -184,9 +184,9 @@ def train(epoch, train_loader, teacher_model, teacher_optimizer, student_model, 
         student_train_total += 1
         student_train_correct += student_prec
 
-        new_labels = .5 * \
+        new_labels = .75 * \
             torch.nn.functional.one_hot(
-                labels, num_classes=10) + .5 * F.softmax(teacher_outputs, dim=1)
+                labels, num_classes=10) + .25 * F.softmax(teacher_outputs, dim=1)
 
         #update labels
         new_labels = (temporal_labels.addLabels(new_labels.detach().cpu(), indexes, epoch)).cuda()
@@ -291,7 +291,7 @@ student_test_acc = 0
 
 # our temporal label holder
 temporal_labels = TemporalLabels(
-    num_samples=num_training_samples, num_classes=num_classes, alpha=0.75)
+    num_samples=num_training_samples, num_classes=num_classes, alpha=0.9)
 
 # training
 noise_prior_cur = noise_prior
