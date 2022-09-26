@@ -313,7 +313,12 @@ teacher_model.cuda()
 print("hello")
 epoch = 0
 teacher_train_acc = 0
+student_train_acc = 0
+teacher_test_acc = 0
 student_test_acc = 0
+
+max_teacher_acc = 0
+max_student_acc = 0
 
 # our temporal label holder
 temporal_labels = TemporalLabels(
@@ -329,20 +334,31 @@ for epoch in range(args.n_epoch):
     teacher_model.train()
     student_model.train()
 
-    # if epoch < 5:
-    #     teacher_train_acc, student_train_acc = pre_train(epoch, train_loader, teacher_model,
-    #                                                      teacher_optimizer, student_model, student_optimizer)
-    # else:
-    teacher_train_acc, student_train_acc = no_ensemble_train(epoch, train_loader, teacher_model,
+    if epoch < 5:
+        teacher_train_acc, student_train_acc = pre_train(epoch, train_loader, teacher_model,
+                                                         teacher_optimizer, student_model, student_optimizer)
+    else:
+        teacher_train_acc, student_train_acc = no_ensemble_train(epoch, train_loader, teacher_model,
                                                                  teacher_optimizer, student_model, student_optimizer)
     # teacher_train_acc, student_train_acc = train(epoch, train_loader, teacher_model,
     #                                              teacher_optimizer, student_model, student_optimizer, temporal_labels)
     # evaluate models
     teacher_test_acc = evaluate(test_loader=test_loader, model=teacher_model)
     student_test_acc = evaluate(test_loader=test_loader, model=student_model)
+
+    if teacher_test_acc > max_teacher_acc:
+        max_teacher_acc = teacher_test_acc
+    if student_test_acc > max_student_acc:
+        max_student_acc = student_test_acc
     # save results
     print('teacher train acc on train images is ', teacher_train_acc)
     print('teacher test acc on test images is ', teacher_test_acc)
 
     print('\nstudent train acc on train images is ', student_train_acc)
     print('student test acc on test images is ', student_test_acc)
+
+print('\n\tMax Teacher test acc:', max_teacher_acc)
+print('\tFinal Teacher test acc:', teacher_test_acc)
+
+print('\n\tMax Student test acc:', max_student_acc)
+print('\tFinal Student test acc:', student_test_acc)
