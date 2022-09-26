@@ -112,18 +112,18 @@ def pre_train(epoch, train_loader, teacher_model, teacher_optimizer, student_mod
         inputs, targets_a, targets_b = map(
             Variable, (inputs, targets_a, targets_b))
 
-        new_targets = lam * targets_a + (1-lam) * targets_b
-
         # Forward + Backward + Optimize
         teacher_logits = teacher_model(inputs)
         student_logits = student_model(inputs)
 
-        teacher_prec, _ = accuracy(teacher_logits, new_targets, topk=(1, 5))
+        teacher_prec_a, _ = accuracy(teacher_logits, targets_a, topk=(1, 5))
+        teacher_prec_b, _ = accuracy(teacher_logits, targets_b, topk=(1, 5))
+        teacher_prec = lam * teacher_prec_a + (1-lam)*teacher_prec_b
         # prec = 0.0
         teacher_train_total += 1
         teacher_train_correct += teacher_prec
-        teacher_loss = F.cross_entropy(
-            teacher_logits, new_targets, reduce=True)
+        teacher_loss = lam*F.cross_entropy(teacher_logits, targets_a, reduce=True) + (
+            1-lam)*F.cross_entropy(teacher_logits, targets_b, reduce=True)
 
         teacher_optimizer.zero_grad()
         teacher_loss.backward()
@@ -132,13 +132,15 @@ def pre_train(epoch, train_loader, teacher_model, teacher_optimizer, student_mod
             print('Teacher Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, Loss: %.4f'
                   % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, teacher_prec, teacher_loss.data))
 
-        student_prec, _ = accuracy(student_logits, new_targets, topk=(1, 5))
+        student_prec_a, _ = accuracy(student_logits, targets_a, topk=(1, 5))
+        student_prec_b, _ = accuracy(student_logits, targets_b, topk=(1, 5))
+        student_prec = lam * student_prec_a + (1-lam)*student_prec_b
         # prec = 0.0
         student_train_total += 1
         student_train_correct += student_prec
 
-        student_loss = F.cross_entropy(
-            student_logits, new_targets, reduce=True)
+        student_loss = lam*F.cross_entropy(student_logits, targets_a, reduce=True) + (
+            1-lam)*F.cross_entropy(student_logits, targets_b, reduce=True)
         student_optimizer.zero_grad()
         student_loss.backward()
         student_optimizer.step()
@@ -319,7 +321,7 @@ for epoch in range(args.n_epoch):
                                                          teacher_optimizer, student_model, student_optimizer)
     else:
         teacher_train_acc, student_train_acc = no_ensemble_train(epoch, train_loader, teacher_model,
-                                                             teacher_optimizer, student_model, student_optimizer)
+                                                                 teacher_optimizer, student_model, student_optimizer)
     # teacher_train_acc, student_train_acc = train(epoch, train_loader, teacher_model,
     #                                              teacher_optimizer, student_model, student_optimizer, temporal_labels)
     # evaluate models
