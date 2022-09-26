@@ -170,20 +170,19 @@ def no_ensemble_train(epoch, train_loader, teacher_model, teacher_optimizer, stu
         inputs, targets_a, targets_b = map(
             Variable, (inputs, targets_a, targets_b))
 
-        new_targets = lam * torch.nn.functional.one_hot(
-            targets_a, num_classes=10) + (1-lam) * torch.nn.functional.one_hot(
-            targets_b, num_classes=10)
-
         # Forward + Backward + Optimize
         teacher_logits = teacher_model(inputs)
         student_logits = student_model(inputs)
 
-        teacher_prec, _ = accuracy(teacher_logits, new_targets, topk=(1, 5))
+        teacher_prec_a, _ = accuracy(teacher_logits, targets_a, topk=(1, 5))
+        teacher_prec_b, _ = accuracy(teacher_logits, targets_b, topk=(1, 5))
+        teacher_prec = lam * teacher_prec_a + (1-lam)*teacher_prec_b
+
         # prec = 0.0
         teacher_train_total += 1
         teacher_train_correct += teacher_prec
-        teacher_loss = F.cross_entropy(
-            teacher_logits, new_targets, reduce=True)
+        teacher_loss = lam * F.cross_entropy(teacher_logits, targets_a, reduce=True) + (
+            1-lam) * F.cross_entropy(teacher_logits, targets_b, reduce=True)
 
         teacher_optimizer.zero_grad()
         teacher_loss.backward()
@@ -194,10 +193,10 @@ def no_ensemble_train(epoch, train_loader, teacher_model, teacher_optimizer, stu
 
         # update student on all with distillation by teacher
         teacher_outputs = teacher_model(inputs)
-        new_labels = .75 * new_targets + .25 * \
-            F.softmax(teacher_outputs, dim=1)
+        new_labels = 0.75 * (lam * torch.nn.functional.one_hot(targets_a, num_classes=10) + (1-lam) *
+                             torch.nn.functional.one_hot(targets_b, num_classes=10)) + 0.25*F.softmax(teacher_outputs, dim=1)
 
-        student_prec, _ = accuracy(student_logits, new_targets, topk=(1, 5))
+        student_prec, _ = accuracy(student_logits, new_labels, topk=(1, 5))
         # prec = 0.0
         student_train_total += 1
         student_train_correct += student_prec
@@ -319,9 +318,9 @@ for epoch in range(args.n_epoch):
     #                                                      teacher_optimizer, student_model, student_optimizer)
     # else:
     teacher_train_acc, student_train_acc = no_ensemble_train(epoch, train_loader, teacher_model,
-                                                                 teacher_optimizer, student_model, student_optimizer)
-        # teacher_train_acc, student_train_acc = train(epoch, train_loader, teacher_model,
-        #                                              teacher_optimizer, student_model, student_optimizer, temporal_labels)
+                                                             teacher_optimizer, student_model, student_optimizer)
+    # teacher_train_acc, student_train_acc = train(epoch, train_loader, teacher_model,
+    #                                              teacher_optimizer, student_model, student_optimizer, temporal_labels)
     # evaluate models
     teacher_test_acc = evaluate(test_loader=test_loader, model=teacher_model)
     student_test_acc = evaluate(test_loader=test_loader, model=student_model)
