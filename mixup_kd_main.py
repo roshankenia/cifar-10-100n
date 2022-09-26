@@ -195,16 +195,27 @@ def no_ensemble_train(epoch, train_loader, teacher_model, teacher_optimizer, stu
 
         # update student on all with distillation by teacher
         teacher_outputs = teacher_model(inputs)
-        new_labels = 0.75 * (lam * torch.nn.functional.one_hot(targets_a, num_classes=10) + (1-lam) *
-                             torch.nn.functional.one_hot(targets_b, num_classes=10)) + 0.25*F.softmax(teacher_outputs, dim=1)
+        # new_labels = 0.75 * (lam * torch.nn.functional.one_hot(targets_a, num_classes=10) + (1-lam) *
+        #                      torch.nn.functional.one_hot(targets_b, num_classes=10)) + 0.25*F.softmax(teacher_outputs, dim=1)
+        teacher_labels = 0.75 * torch.nn.functional.one_hot(
+            labels, num_classes=10) + 0.25*F.softmax(teacher_outputs, dim=1)
 
-        student_prec, _ = accuracy(
-            student_logits, torch.argmax(new_labels, dim=1), topk=(1, 5))
+        # mixup new labels with teacher distillation
+        st_inputs, st_targets_a, st_targets_b, st_lam = mixup_data(
+            images, teacher_labels)
+        st_inputs, st_targets_a, st_targets_b = map(
+            Variable, (st_inputs, st_targets_a, st_targets_b))
+
+        student_prec_a, _ = accuracy(student_logits, st_targets_a, topk=(1, 5))
+        student_prec_b, _ = accuracy(student_logits, st_targets_b, topk=(1, 5))
+        student_prec = st_lam * student_prec_a + (1-st_lam)*student_prec_b
         # prec = 0.0
         student_train_total += 1
         student_train_correct += student_prec
 
-        student_loss = F.cross_entropy(student_logits, new_labels, reduce=True)
+        student_loss = st_lam * F.cross_entropy(student_logits, st_targets_a, reduce=True) + (
+            1-st_lam) * F.cross_entropy(student_logits, st_targets_b, reduce=True)
+
         student_optimizer.zero_grad()
         student_loss.backward()
         student_optimizer.step()
