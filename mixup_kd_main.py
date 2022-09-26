@@ -206,8 +206,10 @@ def no_ensemble_train(epoch, train_loader, teacher_model, teacher_optimizer, stu
         st_inputs, st_targets_a, st_targets_b = map(
             Variable, (st_inputs, st_targets_a, st_targets_b))
 
-        student_prec_a, _ = accuracy(student_logits, st_targets_a, topk=(1, 5))
-        student_prec_b, _ = accuracy(student_logits, st_targets_b, topk=(1, 5))
+        student_prec_a, _ = accuracy(
+            student_logits, torch.argmax(st_targets_a, dim=1), topk=(1, 5))
+        student_prec_b, _ = accuracy(
+            student_logits, torch.argmax(st_targets_b, dim=1), topk=(1, 5))
         student_prec = st_lam * student_prec_a + (1-st_lam)*student_prec_b
         # prec = 0.0
         student_train_total += 1
@@ -327,11 +329,11 @@ for epoch in range(args.n_epoch):
     teacher_model.train()
     student_model.train()
 
-    if epoch < 5:
-        teacher_train_acc, student_train_acc = pre_train(epoch, train_loader, teacher_model,
-                                                         teacher_optimizer, student_model, student_optimizer)
-    else:
-        teacher_train_acc, student_train_acc = no_ensemble_train(epoch, train_loader, teacher_model,
+    # if epoch < 5:
+    #     teacher_train_acc, student_train_acc = pre_train(epoch, train_loader, teacher_model,
+    #                                                      teacher_optimizer, student_model, student_optimizer)
+    # else:
+    teacher_train_acc, student_train_acc = no_ensemble_train(epoch, train_loader, teacher_model,
                                                                  teacher_optimizer, student_model, student_optimizer)
     # teacher_train_acc, student_train_acc = train(epoch, train_loader, teacher_model,
     #                                              teacher_optimizer, student_model, student_optimizer, temporal_labels)
