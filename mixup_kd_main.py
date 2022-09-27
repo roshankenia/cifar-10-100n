@@ -196,8 +196,8 @@ def no_ensemble_train(epoch, train_loader, teacher_model, teacher_optimizer, stu
 
         # update student on all with distillation by teacher
         teacher_outputs = teacher_model(inputs)
-        new_labels = 0.75 * (lam * torch.nn.functional.one_hot(targets_a, num_classes=10) + (1-lam) *
-                             torch.nn.functional.one_hot(targets_b, num_classes=10)) + 0.25*F.softmax(teacher_outputs, dim=1)
+        new_labels = 0.5 * (lam * torch.nn.functional.one_hot(targets_a, num_classes=10) + (1-lam) *
+                             torch.nn.functional.one_hot(targets_b, num_classes=10)) + 0.5*F.softmax(teacher_outputs, dim=1)
         # teacher_labels = 0.75 * torch.nn.functional.one_hot(
         #     labels, num_classes=10) + 0.25*F.softmax(teacher_outputs, dim=1)
 
