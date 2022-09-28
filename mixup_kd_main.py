@@ -169,7 +169,7 @@ def no_ensemble_train(epoch, train_loader, teacher_model, teacher_optimizer, stu
 
         # mixup data
         inputs, targets_a, targets_b, lam = mixup_data(
-            images, labels, alpha=8.0)
+            images, labels, alpha=1)
         inputs, targets_a, targets_b = map(
             Variable, (inputs, targets_a, targets_b))
 
