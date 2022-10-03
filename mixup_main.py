@@ -86,6 +86,7 @@ def average_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
     #     lam = 1
     lam = 0.9
     # iterate through each class
+    counts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     for label_class in range(num_classes):
         # find all samples with this label class
         indices = [index for index, value in enumerate(
@@ -95,6 +96,8 @@ def average_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
         avg_img = torch.mean(label_samples, 0)
         # mix
         x[indices] = lam * x[indices] + (1 - lam) * avg_img
+        counts[label_class] = len(indices)
+    print(counts)
     return x, y, lam
 
 
