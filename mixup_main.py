@@ -178,6 +178,7 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
     # randomly permute unused_index
     shuffle(unused_index)
     # set unused to normal mixup
+    indices = np.array(indices)
     indices[need_to_set] = unused_index
 
     print('num use:', (len(indices)-len(unused_index)),
