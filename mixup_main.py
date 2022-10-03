@@ -84,7 +84,7 @@ def average_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
     #     lam = np.random.beta(alpha, alpha)
     # else:
     #     lam = 1
-    lam = 0.75
+    lam = 0.9
     # iterate through each class
     for label_class in range(num_classes):
         # find all samples with this label class
