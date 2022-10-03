@@ -118,11 +118,12 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
     index_counts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     # add each index to respective class
     for index in rand_index:
+        print(index, 'and', y[index])
         index_classes[y[index]].append(index)
         index_counts[y[index]] += 1
     index_total = index_counts.copy()
-    print('y:',y)
-    print('classes:',index_classes)
+    # print('y:',y)
+    # print('classes:',index_classes)
     
     # now create new list of indexes to mix on
     indices = []
