@@ -108,17 +108,22 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
     else:
         lam = 1
 
+    if use_cuda:
+        rand_index = torch.randperm(batch_size).cuda()
+    else:
+        rand_index = torch.randperm(batch_size)
+
     # mixup based on similar pairs
     index_classes = [[], [], [], [], [], [], [], [], [], []]
     index_counts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     # add each index to respective class
-    for index in range(len(y)):
+    for index in rand_index:
         index_classes[y[index]].append(index)
         index_counts[y[index]] += 1
     index_total = index_counts.copy()
     # now create new list of indexes to mix on
     indices = []
-    for index in range(len(y)):
+    for index in rand_index:
         # airplane
         if y[index] == 0 and index_counts[2] > 0:
             # bird
@@ -163,8 +168,8 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
             # add itself
             indices.append(index)
 
-    print('tot:', index_total)
-    print('counts:', index_counts)
+    # print('tot:', index_total)
+    # print('counts:', index_counts)
     mixed_x = lam * x + (1 - lam) * x[indices, :]
     y_a, y_b = y, y[indices]
     return mixed_x, y_a, y_b, lam
