@@ -181,8 +181,8 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
     indices = np.array(indices)
     indices[need_to_set] = unused_index
     indices = indices.tolist()
-    print('num use:', (len(indices)-len(unused_index)),
-          'num unused:', len(unused_index))
+    # print('num use:', (len(indices)-len(unused_index)),
+    #       'num unused:', len(unused_index))
 
     mixed_x = lam * x + (1 - lam) * x[indices, :]
     y_a, y_b = y, y[indices]
