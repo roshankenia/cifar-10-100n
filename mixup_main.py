@@ -163,8 +163,8 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
             # add itself
             indices.append(index)
 
-    print(index_total)
-    print(index_counts)
+    print('tot:', index_total)
+    print('counts:', index_counts)
     mixed_x = lam * x + (1 - lam) * x[index, :]
     y_a, y_b = y, y[index]
     return mixed_x, y_a, y_b, lam
