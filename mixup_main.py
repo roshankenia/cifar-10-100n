@@ -78,6 +78,65 @@ def mixup_data(x, y, alpha=1.0, use_cuda=True):
     return mixed_x, y_a, y_b, lam
 
 
+def average_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
+    '''Returns mixed inputs, pairs of targets, and lambda'''
+    if alpha > 0:
+        lam = np.random.beta(alpha, alpha)
+    else:
+        lam = 1
+    # iterate through each class
+    for label_class in range(num_classes):
+        # find all samples with this label class
+        indices = [index for index, value in enumerate(
+            y) if value == label_class]
+        label_samples = x[indices]
+        # calculate average image
+        avg_img = torch.mean(label_samples, 0)
+        # mix
+        x[indices] = lam * x[indices] + (1 - lam) * avg_img
+
+    return x, y, lam
+
+
+def train_avg(epoch, train_loader, model, optimizer):
+    train_total = 0
+    train_correct = 0
+
+    for i, (images, labels, indexes) in enumerate(train_loader):
+        ind = indexes.cpu().numpy().transpose()
+        batch_size = len(ind)
+
+        images = Variable(images).cuda()
+        labels = Variable(labels).cuda()
+
+        # mixup data
+        inputs, targets, lam = average_mixup(images, labels)
+        inputs, targets = map(
+            Variable, (inputs, targets))
+
+        # Forward + Backward + Optimize
+        logits = model(inputs)
+
+        prec, _ = accuracy(logits, targets, topk=(1, 5))
+
+        # prec = 0.0
+        train_total += 1
+        train_correct += prec
+
+        # mixup loss
+        loss = F.cross_entropy(logits, targets, reduce=True)
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        if (i+1) % args.print_freq == 0:
+            print('Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, Loss: %.4f'
+                  % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, prec loss.data))
+
+    train_acc = float(train_correct)/float(train_total)
+    return train_acc
+
+
 def train(epoch, train_loader, model, optimizer):
     train_total = 0
     train_correct = 0
@@ -199,7 +258,7 @@ for epoch in range(args.n_epoch):
     print(f'epoch {epoch}')
     adjust_learning_rate(optimizer, epoch, alpha_plan)
     model.train()
-    train_acc = train(epoch, train_loader, model, optimizer)
+    train_acc = train_avg(epoch, train_loader, model, optimizer)
     # evaluate models
     test_acc = evaluate(test_loader=test_loader, model=model)
     # save results
