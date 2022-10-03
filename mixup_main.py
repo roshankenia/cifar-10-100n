@@ -8,6 +8,7 @@ from models import *
 import argparse
 import sys
 import numpy as np
+from random import shuffle
 # ensure we are running on the correct gpu
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "6"  # (xxxx is your specific GPU ID)
@@ -121,7 +122,9 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
         index_classes[y[index]].append(index)
         index_counts[y[index]] += 1
     index_total = index_counts.copy()
-    
+    unused_index = []
+    need_to_set = []
+    i = 0
     # now create new list of indexes to mix on
     indices = []
     for index in rand_index:
@@ -167,7 +170,18 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
             index_counts[1] -= 1
         else:
             # add itself
-            indices.append(index)
+            indices.append(-1)
+            need_to_set.append(i)
+            unused_index.append(index)
+        i += 1
+
+    # randomly permute unused_index
+    shuffle(unused_index)
+    # set unused to normal mixup
+    indices[need_to_set] = unused_index
+
+    print('num use:', (len(indices)-len(unused_index)),
+          'num unused:', len(unused_index))
 
     mixed_x = lam * x + (1 - lam) * x[indices, :]
     y_a, y_b = y, y[indices]
