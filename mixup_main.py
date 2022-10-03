@@ -101,6 +101,117 @@ def average_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
     return x, y, lam
 
 
+def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
+    '''Returns mixed inputs, pairs of targets, and lambda'''
+    if alpha > 0:
+        lam = np.random.beta(alpha, alpha)
+    else:
+        lam = 1
+
+    # mixup based on similar pairs
+    index_classes = [[], [], [], [], [], [], [], [], [], []]
+    index_counts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    # add each index to respective class
+    for index in range(len(y)):
+        index_classes[y[index]].append(index)
+        index_counts[y[index]] += 1
+    index_total = index_counts.copy()
+    # now create new list of indexes to mix on
+    indices = []
+    for index in range(len(y)):
+        # airplane
+        if y[index] == 0 and index_counts[2] > 0:
+            # bird
+            indices.append(index_classes[2][index_total[2] - index_counts[2]])
+            index_counts[2] -= 1
+        # automobile
+        elif y[index] == 1 and index_counts[9] > 0:
+            # truck
+            indices.append(index_classes[9][index_total[9] - index_counts[9]])
+            index_counts[9] -= 1
+        # bird
+        elif y[index] == 2 and index_counts[0] > 0:
+            # airplane
+            indices.append(index_classes[0][index_total[0] - index_counts[0]])
+            index_counts[0] -= 1
+        # cat
+        elif y[index] == 3 and index_counts[5] > 0:
+            # dog
+            indices.append(index_classes[5][index_total[5] - index_counts[5]])
+            index_counts[5] -= 1
+        # deer
+        elif y[index] == 4 and index_counts[7] > 0:
+            # horse
+            indices.append(index_classes[7][index_total[7] - index_counts[7]])
+            index_counts[7] -= 1
+        # dog
+        elif y[index] == 5 and index_counts[3] > 0:
+            # cat
+            indices.append(index_classes[3][index_total[3] - index_counts[3]])
+            index_counts[3] -= 1
+        # horse
+        elif y[index] == 7 and index_counts[4] > 0:
+            # deer
+            indices.append(index_classes[4][index_total[4] - index_counts[4]])
+            index_counts[4] -= 1
+        # truck
+        elif y[index] == 9 and index_counts[1] > 0:
+            # automobile
+            indices.append(index_classes[1][index_total[1] - index_counts[1]])
+            index_counts[1] -= 1
+        else:
+            # add itself
+            indices.append(index)
+
+    print(index_total)
+    print(index_counts)
+    mixed_x = lam * x + (1 - lam) * x[index, :]
+    y_a, y_b = y, y[index]
+    return mixed_x, y_a, y_b, lam
+
+
+def smart_train(epoch, train_loader, model, optimizer):
+    train_total = 0
+    train_correct = 0
+
+    for i, (images, labels, indexes) in enumerate(train_loader):
+        ind = indexes.cpu().numpy().transpose()
+        batch_size = len(ind)
+
+        images = Variable(images).cuda()
+        labels = Variable(labels).cuda()
+
+        # mixup data
+        inputs, targets_a, targets_b, lam = smart_mixup(images, labels)
+        inputs, targets_a, targets_b = map(
+            Variable, (inputs, targets_a, targets_b))
+
+        # Forward + Backward + Optimize
+        logits = model(inputs)
+
+        prec_a, _ = accuracy(logits, targets_a, topk=(1, 5))
+        prec_b, _ = accuracy(logits, targets_b, topk=(1, 5))
+
+        prec = lam * prec_a + (1-lam)*prec_b
+        # prec = 0.0
+        train_total += 1
+        train_correct += prec
+
+        # mixup loss
+        loss = lam * F.cross_entropy(logits, targets_a, reduce=True) + (
+            1 - lam) * F.cross_entropy(logits, targets_b, reduce=True)
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        if (i+1) % args.print_freq == 0:
+            print('Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, A Training Accuracy: %.4F, B Training Accuracy: %.4F, Loss: %.4f'
+                  % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, prec, prec_a, prec_b, loss.data))
+
+    train_acc = float(train_correct)/float(train_total)
+    return train_acc
+
+
 def train_avg(epoch, train_loader, model, optimizer):
     train_total = 0
     train_correct = 0
@@ -240,7 +351,7 @@ optimizer = torch.optim.SGD(
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                            batch_size=128,
                                            num_workers=args.num_workers,
-                                           shuffle=False)
+                                           shuffle=True)
 
 
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
@@ -261,7 +372,7 @@ for epoch in range(args.n_epoch):
     print(f'epoch {epoch}')
     adjust_learning_rate(optimizer, epoch, alpha_plan)
     model.train()
-    train_acc = train_avg(epoch, train_loader, model, optimizer)
+    train_acc = smart_train(epoch, train_loader, model, optimizer)
     # evaluate models
     test_acc = evaluate(test_loader=test_loader, model=model)
     # save results
