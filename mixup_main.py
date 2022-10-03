@@ -131,7 +131,7 @@ def train_avg(epoch, train_loader, model, optimizer):
         optimizer.step()
         if (i+1) % args.print_freq == 0:
             print('Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, Loss: %.4f'
-                  % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, prec loss.data))
+                  % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, prec, loss.data))
 
     train_acc = float(train_correct)/float(train_total)
     return train_acc
