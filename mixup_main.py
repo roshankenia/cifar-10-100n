@@ -240,7 +240,7 @@ optimizer = torch.optim.SGD(
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                            batch_size=128,
                                            num_workers=args.num_workers,
-                                           shuffle=True)
+                                           shuffle=False)
 
 
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
