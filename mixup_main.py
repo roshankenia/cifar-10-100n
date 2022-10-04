@@ -201,7 +201,7 @@ def smart_train(epoch, train_loader, model, optimizer):
         labels = Variable(labels).cuda()
 
         # mixup data
-        inputs, targets_a, targets_b, lam = smart_mixup(images, labels)
+        inputs, targets_a, targets_b, lam = smart_mixup(images, labels, alpha=8)
         inputs, targets_a, targets_b = map(
             Variable, (inputs, targets_a, targets_b))
 
