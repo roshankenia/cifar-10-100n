@@ -99,6 +99,41 @@ def average_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
     print(counts)
     return x, y, lam
 
+def train_normal(epoch, train_loader, model, optimizer):
+    train_total = 0
+    train_correct = 0
+
+    for i, (images, labels, indexes) in enumerate(train_loader):
+        ind = indexes.cpu().numpy().transpose()
+        batch_size = len(ind)
+
+        images = Variable(images).cuda()
+        labels = Variable(labels).cuda()
+
+        #apply feature extraction
+        features = extract_features(images)
+
+        # Forward + Backward + Optimize
+        logits = model(features)
+
+        prec, _ = accuracy(logits, features, topk=(1, 5))
+
+        # prec = 0.0
+        train_total += 1
+        train_correct += prec
+
+        # mixup loss
+        loss = F.cross_entropy(logits, features, reduce=True)
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        if (i+1) % args.print_freq == 0:
+            print('Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, Loss: %.4f'
+                  % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, prec, loss.data))
+
+    train_acc = float(train_correct)/float(train_total)
+    return train_acc
 def train_avg(epoch, train_loader, model, optimizer):
     train_total = 0
     train_correct = 0
@@ -212,15 +247,28 @@ epoch = 0
 train_acc = 0
 
 # training
+file = open("results.txt", "a")
+max_test = 0
+
 noise_prior_cur = noise_prior
 for epoch in range(args.n_epoch):
     # train models
     print(f'epoch {epoch}')
     adjust_learning_rate(optimizer, epoch, alpha_plan)
     model.train()
-    train_acc = smart_train(epoch, train_loader, model, optimizer)
+    # train_acc = smart_train(epoch, train_loader, model, optimizer)
+    train_acc = train_normal(epoch, train_loader, model, optimizer)
     # evaluate models
     test_acc = evaluate(test_loader=test_loader, model=model)
+    if test_acc > max_test:
+        max_test = test_acc
     # save results
     print('train acc on train images is ', train_acc)
     print('test acc on test images is ', test_acc)
+
+    file.write("train acc on train images is "+train_acc+"\n")
+    file.write("test acc on test images is "+test_acc+"\n")
+file.write("\n\nfinal test acc on test images is "+test_acc+"\n")
+file.write("max test acc on test images is "+max_test+"\n")
+file.close()
+
