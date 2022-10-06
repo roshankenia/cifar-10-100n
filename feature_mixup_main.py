@@ -45,9 +45,6 @@ def adjust_learning_rate(optimizer, epoch, alpha_plan):
 
 def accuracy(logit, target, topk=(1,)):
     """Computes the precision@k for the specified values of k"""
-    print(logit.shape)
-    print(target.shape)
-
     output = F.softmax(logit, dim=1)
     maxk = max(topk)
     batch_size = target.size(0)
@@ -129,7 +126,7 @@ def train_normal(epoch, train_loader, model, optimizer):
         train_correct += prec
 
         # mixup loss
-        loss = F.cross_entropy(logits, features, reduce=True)
+        loss = F.cross_entropy(logits, labels, reduce=True)
 
         optimizer.zero_grad()
         loss.backward()
