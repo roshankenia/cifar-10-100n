@@ -62,6 +62,7 @@ def accuracy(logit, target, topk=(1,)):
 
 def extract_features(x_data):
     # define our pretrained resnet
+    print(x_data.shape)
     model = torchvision.models.resnet34(pretrained=True)
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, 10)
@@ -74,9 +75,13 @@ def extract_features(x_data):
     features = model(data)
     features = torch.squeeze(features)
 
+    print(features.shape)
+
     return features
 
 # Train the Model
+
+
 def average_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
     '''Returns mixed inputs, pairs of targets, and lambda'''
     # if alpha > 0:
@@ -99,6 +104,7 @@ def average_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
     print(counts)
     return x, y, lam
 
+
 def train_normal(epoch, train_loader, model, optimizer):
     train_total = 0
     train_correct = 0
@@ -110,7 +116,7 @@ def train_normal(epoch, train_loader, model, optimizer):
         images = Variable(images).cuda()
         labels = Variable(labels).cuda()
 
-        #apply feature extraction
+        # apply feature extraction
         features = extract_features(images)
 
         # Forward + Backward + Optimize
@@ -134,6 +140,8 @@ def train_normal(epoch, train_loader, model, optimizer):
 
     train_acc = float(train_correct)/float(train_total)
     return train_acc
+
+
 def train_avg(epoch, train_loader, model, optimizer):
     train_total = 0
     train_correct = 0
@@ -251,7 +259,7 @@ file = open("results.txt", "a")
 max_test = 0
 
 noise_prior_cur = noise_prior
-for epoch in range(args.n_epoch):
+for epoch in range(2):
     # train models
     print(f'epoch {epoch}')
     adjust_learning_rate(optimizer, epoch, alpha_plan)
@@ -271,4 +279,3 @@ for epoch in range(args.n_epoch):
 file.write("\n\nfinal test acc on test images is "+test_acc+"\n")
 file.write("max test acc on test images is "+max_test+"\n")
 file.close()
-
