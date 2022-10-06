@@ -230,7 +230,7 @@ print('train_labels:', len(train_dataset.train_labels),
       train_dataset.train_labels[:10])
 # load model
 print('building model...')
-model = ResNet34(num_classes)
+model = VecResNet34(num_classes)
 print('building model done')
 optimizer = torch.optim.SGD(
     model.parameters(), lr=learning_rate, weight_decay=0.0005, momentum=0.9)
