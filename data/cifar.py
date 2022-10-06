@@ -97,6 +97,7 @@ class CIFAR10(data.Dataset):
 
             # define our pretrained resnet
             model = torchvision.models.resnet34(pretrained=True)
+            model.eval()
             num_ftrs = model.fc.in_features
             model.fc = nn.Linear(num_ftrs, 10)
             # remove last fully connected layer from model
