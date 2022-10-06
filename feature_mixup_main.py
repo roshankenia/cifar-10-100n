@@ -61,6 +61,7 @@ def accuracy(logit, target, topk=(1,)):
 
 
 def extract_features(x_data):
+    print(x_data.shape)
     # define our pretrained resnet
     model = torchvision.models.resnet34(pretrained=True).cuda()
     num_ftrs = model.fc.in_features
