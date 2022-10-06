@@ -116,11 +116,11 @@ def train_normal(epoch, train_loader, model, optimizer):
         labels = Variable(labels).cuda()
 
         # apply feature extraction
-        features = extract_features(images)
+        # features = extract_features(images)
+        features = images
 
         # Forward + Backward + Optimize
-        # logits = model(features)
-        logits = images
+        logits = model(features)
 
         prec, _ = accuracy(logits, features, topk=(1, 5))
 
