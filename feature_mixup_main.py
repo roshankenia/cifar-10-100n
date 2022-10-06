@@ -116,8 +116,9 @@ def train_normal(epoch, train_loader, model, optimizer):
         labels = Variable(labels).cuda()
 
         # apply feature extraction
-        # features = extract_features(images)
-        features = images
+        features = extract_features(images)
+        features = torch.reshape(features, (batch_size, 2, 16, 16))
+        print(features.shape)
 
         # Forward + Backward + Optimize
         logits = model(features)
@@ -232,7 +233,7 @@ print('train_labels:', len(train_dataset.train_labels),
       train_dataset.train_labels[:10])
 # load model
 print('building model...')
-model = ResNet34(num_classes)
+model = VecResNet34(num_classes)
 print('building model done')
 optimizer = torch.optim.SGD(
     model.parameters(), lr=learning_rate, weight_decay=0.0005, momentum=0.9)
