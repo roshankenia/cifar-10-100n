@@ -73,6 +73,14 @@ class CIFAR10(data.Dataset):
         if download:
             self.download()
 
+        # define our pretrained resnet
+        self.model = torchvision.models.resnet34(pretrained=True)
+        self.model.eval()
+        num_ftrs = self.model.fc.in_features
+        self.model.fc = nn.Linear(num_ftrs, 10)
+        # remove last fully connected layer from model
+        self.model = torch.nn.Sequential(*(list(self.model.children())[:-1]))
+
         # now load the picked numpy arrays
         if self.train:
             self.train_data = []
@@ -95,16 +103,9 @@ class CIFAR10(data.Dataset):
             self.train_data = np.concatenate(self.train_data)
             self.train_data = self.train_data.reshape((50000, 3, 32, 32))
 
-            # define our pretrained resnet
-            model = torchvision.models.resnet34(pretrained=True)
-            model.eval()
-            num_ftrs = model.fc.in_features
-            model.fc = nn.Linear(num_ftrs, 10)
-            # remove last fully connected layer from model
-            model = torch.nn.Sequential(*(list(model.children())[:-1]))
             # input data to model
             train_tensor = torch.Tensor(self.train_data)
-            features = model(train_tensor)
+            features = self.model(train_tensor)
             # features = torch.squeeze(features)
             self.train_data = torch.reshape(features, (50000, 2, 16, 16))
             self.train_data = self.train_data.detach().numpy()
@@ -163,7 +164,7 @@ class CIFAR10(data.Dataset):
 
             # input data to model
             test_tensor = torch.Tensor(self.test_data)
-            features = model(test_tensor)
+            features = self.model(test_tensor)
             # features = torch.squeeze(features)
             self.test_data = torch.reshape(features, (10000, 2, 16, 16))
             self.test_data = self.test_data.detach().numpy()
