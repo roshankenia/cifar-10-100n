@@ -107,7 +107,7 @@ class CIFAR10(data.Dataset):
             features = model(train_tensor)
             # features = torch.squeeze(features)
             self.train_data = torch.reshape(features, (50000, 2, 16, 16))
-            self.train_data = self.train_data.numpy()
+            self.train_data = self.train_data.detach().numpy()
 
             self.train_data = self.train_data.transpose(
                 (0, 2, 3, 1))  # convert to HWC
@@ -166,7 +166,7 @@ class CIFAR10(data.Dataset):
             features = model(test_tensor)
             # features = torch.squeeze(features)
             self.test_data = torch.reshape(features, (10000, 2, 16, 16))
-            self.test_data = self.test_data.numpy()
+            self.test_data = self.test_data.detach().numpy()
 
             self.test_data = self.test_data.transpose(
                 (0, 2, 3, 1))  # convert to HWC
