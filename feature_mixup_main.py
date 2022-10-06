@@ -122,7 +122,7 @@ def train_normal(epoch, train_loader, model, optimizer):
         # Forward + Backward + Optimize
         logits = model(features)
 
-        prec, _ = accuracy(logits, features, topk=(1, 5))
+        prec, _ = accuracy(logits, labels, topk=(1, 5))
 
         # prec = 0.0
         train_total += 1
