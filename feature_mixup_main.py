@@ -71,6 +71,7 @@ def extract_features(x_data):
     # input data to model
     # print(model)
     features = model(x_data)
+    print(features.shape)
     features = torch.squeeze(features)
 
     print(features.shape)
