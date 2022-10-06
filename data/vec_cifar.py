@@ -263,7 +263,7 @@ class VECCIFAR10(data.Dataset):
         return fmt_str
 
 
-class VECCIFAR100(CIFAR10):
+class VECCIFAR100(VECCIFAR10):
     """`CIFAR100 <https://www.cs.toronto.edu/~kriz/cifar.html>`_ Dataset.
 
     Args:
