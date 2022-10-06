@@ -63,7 +63,7 @@ def accuracy(logit, target, topk=(1,)):
 def extract_features(x_data):
     # define our pretrained resnet
     print(x_data.shape)
-    model = torchvision.models.resnet34(pretrained=True)
+    model = torchvision.models.resnet34(pretrained=True).cuda()
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, 10)
     # remove last fully connected layer from model
