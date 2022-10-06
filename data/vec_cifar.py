@@ -110,8 +110,8 @@ class VECCIFAR10(data.Dataset):
             self.train_data = torch.reshape(features, (50000, 2, 16, 16))
             self.train_data = self.train_data.detach().numpy()
 
-            self.train_data = self.train_data.transpose(
-                (0, 2, 3, 1))  # convert to HWC
+            # self.train_data = self.train_data.transpose(
+            #     (0, 2, 3, 1))  # convert to HWC
             # if noise_type is not None:
             if noise_type != 'clean':
                 # Load human noisy labels
@@ -169,8 +169,8 @@ class VECCIFAR10(data.Dataset):
             self.test_data = torch.reshape(features, (10000, 2, 16, 16))
             self.test_data = self.test_data.detach().numpy()
 
-            self.test_data = self.test_data.transpose(
-                (0, 2, 3, 1))  # convert to HWC
+            # self.test_data = self.test_data.transpose(
+            #     (0, 2, 3, 1))  # convert to HWC
 
     def load_label(self):
         # NOTE only load manual training label
