@@ -113,8 +113,7 @@ def train_normal(epoch, train_loader, model, optimizer):
         labels = Variable(labels).cuda()
 
         # apply feature extraction
-        features = extract_features(images)
-        # features = images
+        features = images
 
         # Forward + Backward + Optimize
         logits = model(features)
@@ -274,8 +273,8 @@ for epoch in range(args.n_epoch):
     print('train acc on train images is ', train_acc)
     print('test acc on test images is ', test_acc)
 
-    file.write("train acc on train images is "+train_acc+"\n")
-    file.write("test acc on test images is "+test_acc+"\n")
-file.write("\n\nfinal test acc on test images is "+test_acc+"\n")
-file.write("max test acc on test images is "+max_test+"\n")
+    file.write("train acc on train images is "+str(train_acc)+"\n")
+    file.write("test acc on test images is "+str(test_acc)+"\n")
+file.write("\n\nfinal test acc on test images is "+str(test_acc)+"\n")
+file.write("max test acc on test images is "+str(max_test)+"\n")
 file.close()
