@@ -1,6 +1,7 @@
 import numpy as np
 import torchvision.transforms as transforms
 from .cifar import CIFAR10, CIFAR100
+from .vec_cifar import VECCIFAR10, VECCIFAR100
 import os
 import sys
 import torch
@@ -12,14 +13,6 @@ if not torch.cuda.is_available() or torch.cuda.device_count() != 1:
     sys.exit()
 else:
     print('GPU is being properly used')
-
-vec_train_cifar10_transform = transforms.Compose([
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-])
-
-vec_test_cifar10_transform = transforms.Compose([
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-])
 
 train_cifar10_transform = transforms.Compose([
     transforms.RandomCrop(32, padding=4),
@@ -48,19 +41,17 @@ test_cifar100_transform = transforms.Compose([
 
 def vec_input_dataset(dataset, noise_type, noise_path, is_human):
     if dataset == 'cifar10':
-        train_dataset = CIFAR10(root='~/data/',
-                                download=True,
-                                train=True,
-                                transform=vec_train_cifar10_transform,
-                                noise_type=noise_type,
-                                noise_path=noise_path, is_human=is_human
-                                )
-        test_dataset = CIFAR10(root='~/data/',
-                               download=False,
-                               train=False,
-                               transform=vec_test_cifar10_transform,
-                               noise_type=noise_type
-                               )
+        train_dataset = VECCIFAR10(root='~/data/',
+                                   download=True,
+                                   train=True,
+                                   noise_type=noise_type,
+                                   noise_path=noise_path, is_human=is_human
+                                   )
+        test_dataset = VECCIFAR100(root='~/data/',
+                                   download=False,
+                                   train=False,
+                                   noise_type=noise_type
+                                   )
         num_classes = 10
         num_training_samples = 50000
     return train_dataset, test_dataset, num_classes, num_training_samples
