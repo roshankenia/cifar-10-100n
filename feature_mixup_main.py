@@ -190,7 +190,6 @@ def evaluate(test_loader, model):
     for images, labels, _ in test_loader:
         images = Variable(images).cuda()
         # obtain features
-        images = extract_features(images)
         logits = model(images)
         outputs = F.softmax(logits, dim=1)
         _, pred = torch.max(outputs.data, 1)
