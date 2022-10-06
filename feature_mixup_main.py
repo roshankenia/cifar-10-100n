@@ -273,9 +273,9 @@ for epoch in range(args.n_epoch):
     # save results
     print('train acc on train images is ', train_acc)
     print('test acc on test images is ', test_acc)
-
-    file.write("train acc on train images is "+str(train_acc)+"\n")
-    file.write("test acc on test images is "+str(test_acc)+"\n")
+    file.write("\nepoch: "+str(epoch))
+    file.write("\ttrain acc on train images is "+str(train_acc)+"\n")
+    file.write("\ttest acc on test images is "+str(test_acc)+"\n")
 file.write("\n\nfinal test acc on test images is "+str(test_acc)+"\n")
 file.write("max test acc on test images is "+str(max_test)+"\n")
 file.close()
