@@ -47,7 +47,7 @@ def vec_input_dataset(dataset, noise_type, noise_path, is_human):
                                    noise_type=noise_type,
                                    noise_path=noise_path, is_human=is_human
                                    )
-        test_dataset = VECCIFAR100(root='~/data/',
+        test_dataset = VECCIFAR10(root='~/data/',
                                    download=False,
                                    train=False,
                                    noise_type=noise_type
