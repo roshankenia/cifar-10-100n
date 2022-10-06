@@ -62,21 +62,25 @@ def accuracy(logit, target, topk=(1,)):
 
 def extract_features(x_data):
     # define our pretrained resnet
-    model = torchvision.models.resnet34(pretrained=True)
+    print(x_data.shape)
+    model = torchvision.models.resnet34(pretrained=True).cuda()
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, 10)
     # remove last fully connected layer from model
     model = torch.nn.Sequential(*(list(model.children())[:-1]))
     # input data to model
-    data = np.moveaxis(x_data.train_data, -1, 1)
-    data = torch.from_numpy(data).float()
     # print(model)
-    features = model(data)
-    features = torch.squeeze(features)
+    features = model(x_data)
+    print(features.shape)
+    # features = torch.squeeze(features)
+
+    # print(features.shape)
 
     return features
 
 # Train the Model
+
+
 def average_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
     '''Returns mixed inputs, pairs of targets, and lambda'''
     # if alpha > 0:
@@ -99,6 +103,7 @@ def average_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
     print(counts)
     return x, y, lam
 
+
 def train_normal(epoch, train_loader, model, optimizer):
     train_total = 0
     train_correct = 0
@@ -110,9 +115,10 @@ def train_normal(epoch, train_loader, model, optimizer):
         images = Variable(images).cuda()
         labels = Variable(labels).cuda()
 
-        #apply feature extraction
-        # features = extract_features(images)
-        features = images
+        # apply feature extraction
+        features = extract_features(images)
+        features = torch.reshape(features, (batch_size, 2, 16, 16))
+        print(features.shape)
 
         # Forward + Backward + Optimize
         logits = model(features)
@@ -135,6 +141,8 @@ def train_normal(epoch, train_loader, model, optimizer):
 
     train_acc = float(train_correct)/float(train_total)
     return train_acc
+
+
 def train_avg(epoch, train_loader, model, optimizer):
     train_total = 0
     train_correct = 0
@@ -225,7 +233,7 @@ print('train_labels:', len(train_dataset.train_labels),
       train_dataset.train_labels[:10])
 # load model
 print('building model...')
-model = ResNet34(num_classes)
+model = VecResNet34(num_classes)
 print('building model done')
 optimizer = torch.optim.SGD(
     model.parameters(), lr=learning_rate, weight_decay=0.0005, momentum=0.9)
@@ -252,7 +260,7 @@ file = open("results.txt", "a")
 max_test = 0
 
 noise_prior_cur = noise_prior
-for epoch in range(args.n_epoch):
+for epoch in range(2):
     # train models
     print(f'epoch {epoch}')
     adjust_learning_rate(optimizer, epoch, alpha_plan)
@@ -272,4 +280,3 @@ for epoch in range(args.n_epoch):
 file.write("\n\nfinal test acc on test images is "+test_acc+"\n")
 file.write("max test acc on test images is "+max_test+"\n")
 file.close()
-
