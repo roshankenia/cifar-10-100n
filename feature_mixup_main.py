@@ -62,16 +62,13 @@ def accuracy(logit, target, topk=(1,)):
 
 def extract_features(x_data):
     # define our pretrained resnet
-    print(x_data.shape)
     model = torchvision.models.resnet34(pretrained=True).cuda()
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, 10)
     # remove last fully connected layer from model
     model = torch.nn.Sequential(*(list(model.children())[:-1]))
     # input data to model
-    # print(model)
     features = model(x_data)
-    print(features.shape)
     # features = torch.squeeze(features)
     features = torch.reshape(features, (x_data.shape[0], 2, 16, 16))
     # print(features.shape)
@@ -121,6 +118,8 @@ def train_normal(epoch, train_loader, model, optimizer):
 
         # Forward + Backward + Optimize
         logits = model(features)
+
+        print(logits.shape)
 
         prec, _ = accuracy(logits, features, topk=(1, 5))
 
