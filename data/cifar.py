@@ -102,9 +102,11 @@ class CIFAR10(data.Dataset):
             # remove last fully connected layer from model
             model = torch.nn.Sequential(*(list(model.children())[:-1]))
             # input data to model
-            features = model(self.train_data)
+            train_tensor = torch.Tensor(self.train_data)
+            features = model(train_tensor)
             # features = torch.squeeze(features)
             self.train_data = torch.reshape(features, (50000, 2, 16, 16))
+            self.train_data = self.train_data.numpy()
 
             self.train_data = self.train_data.transpose(
                 (0, 2, 3, 1))  # convert to HWC
@@ -159,9 +161,11 @@ class CIFAR10(data.Dataset):
             self.test_data = self.test_data.reshape((10000, 3, 32, 32))
 
             # input data to model
-            features = model(self.test_data)
+            test_tensor = torch.Tensor(self.test_data)
+            features = model(test_tensor)
             # features = torch.squeeze(features)
             self.test_data = torch.reshape(features, (10000, 2, 16, 16))
+            self.test_data = self.test_data.numpy()
 
             self.test_data = self.test_data.transpose(
                 (0, 2, 3, 1))  # convert to HWC
