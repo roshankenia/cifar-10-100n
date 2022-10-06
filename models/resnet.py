@@ -180,7 +180,7 @@ class ResNet(nn.Module):
 
 class VecResNet(nn.Module):
     def __init__(self, block, num_blocks, num_classes=10):
-        super(ResNet, self).__init__()
+        super(VecResNet, self).__init__()
         self.in_planes = 64
 
         self.conv1 = nn.Conv2d(1, 512, kernel_size=3,
