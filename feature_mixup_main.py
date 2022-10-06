@@ -69,7 +69,7 @@ def extract_features(x_data):
     # remove last fully connected layer from model
     model = torch.nn.Sequential(*(list(model.children())[:-1]))
     # input data to model
-    data = np.moveaxis(x_data.train_data, -1, 1)
+    data = np.moveaxis(x_data, -1, 1)
     data = torch.from_numpy(data).float()
     # print(model)
     features = model(data)
