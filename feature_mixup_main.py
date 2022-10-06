@@ -4,7 +4,7 @@ import torch
 import torchvision
 import torch.nn.functional as F
 from torch.autograd import Variable
-from data.datasets import input_dataset
+from data.datasets import vec_input_dataset
 from models import *
 import argparse
 import sys
@@ -222,7 +222,7 @@ if args.noise_path is None:
         raise NameError(f'Undefined dataset {args.dataset}')
 
 
-train_dataset, test_dataset, num_classes, num_training_samples = input_dataset(
+train_dataset, test_dataset, num_classes, num_training_samples = vec_input_dataset(
     args.dataset, args.noise_type, args.noise_path, args.is_human)
 
 noise_prior = train_dataset.noise_prior
