@@ -222,7 +222,7 @@ class VecResNet(nn.Module):
         print(out.shape)
         out = self.layer4(out)
         print(out.shape)
-        out = F.avg_pool2d(out, 4)
+        out = F.avg_pool2d(out, 2)
         print(out.shape)
         out = out.view(out.size(0), -1)
         print(out.shape)
