@@ -45,6 +45,9 @@ def adjust_learning_rate(optimizer, epoch, alpha_plan):
 
 def accuracy(logit, target, topk=(1,)):
     """Computes the precision@k for the specified values of k"""
+    print(logit.shape)
+    print(target.shape)
+
     output = F.softmax(logit, dim=1)
     maxk = max(topk)
     batch_size = target.size(0)
@@ -118,8 +121,6 @@ def train_normal(epoch, train_loader, model, optimizer):
 
         # Forward + Backward + Optimize
         logits = model(features)
-
-        print(logits.shape)
 
         prec, _ = accuracy(logits, features, topk=(1, 5))
 
