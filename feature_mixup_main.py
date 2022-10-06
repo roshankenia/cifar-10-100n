@@ -73,7 +73,7 @@ def extract_features(x_data):
     features = model(x_data)
     print(features.shape)
     # features = torch.squeeze(features)
-
+    features = torch.reshape(features, (x_data.shape[0], 2, 16, 16))
     # print(features.shape)
 
     return features
@@ -117,8 +117,6 @@ def train_normal(epoch, train_loader, model, optimizer):
 
         # apply feature extraction
         features = extract_features(images)
-        features = torch.reshape(features, (batch_size, 2, 16, 16))
-        # print(features.shape)
         # features = images
 
         # Forward + Backward + Optimize
@@ -193,6 +191,8 @@ def evaluate(test_loader, model):
     total = 0
     for images, labels, _ in test_loader:
         images = Variable(images).cuda()
+        # obtain features
+        images = extract_features(images)
         logits = model(images)
         outputs = F.softmax(logits, dim=1)
         _, pred = torch.max(outputs.data, 1)
@@ -262,7 +262,7 @@ file = open("results.txt", "a")
 max_test = 0
 
 noise_prior_cur = noise_prior
-for epoch in range(2):
+for epoch in range(args.n_epoch):
     # train models
     print(f'epoch {epoch}')
     adjust_learning_rate(optimizer, epoch, alpha_plan)
