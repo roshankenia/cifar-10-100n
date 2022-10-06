@@ -1,7 +1,7 @@
 import numpy as np
 import torchvision.transforms as transforms
 from .cifar import CIFAR10, CIFAR100
-from .vec_cifar import VECCIFAR10, VECCIFAR100
+from .vec_cifar import VECCIFAR10
 import os
 import sys
 import torch
