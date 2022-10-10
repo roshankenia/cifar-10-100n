@@ -59,88 +59,85 @@ def accuracy(logit, target, topk=(1,)):
         res.append(correct_k.mul_(100.0 / batch_size))
     return res
 
-
-def extract_features(x_data):
-    print(x_data.shape)
-    # define our pretrained resnet
-    model = torchvision.models.resnet34(pretrained=True).cuda()
-    num_ftrs = model.fc.in_features
-    model.fc = nn.Linear(num_ftrs, 10)
-    # remove last fully connected layer from model
-    model = torch.nn.Sequential(*(list(model.children())[:-1]))
-    # input data to model
-    features = model(x_data)
-    # features = torch.squeeze(features)
-    features = torch.reshape(features, (x_data.shape[0], 2, 16, 16))
-    # print(features.shape)
-
-    return features
-
 # Train the Model
-
-
-def average_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
+def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
     '''Returns mixed inputs, pairs of targets, and lambda'''
-    # if alpha > 0:
-    #     lam = np.random.beta(alpha, alpha)
-    # else:
-    #     lam = 1
-    lam = 0.9
-    # iterate through each class
-    counts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    for label_class in range(num_classes):
-        # find all samples with this label class
-        indices = [index for index, value in enumerate(
-            y) if value == label_class]
-        label_samples = x[indices]
-        # calculate average image
-        avg_img = torch.mean(label_samples, 0)
-        # mix
-        x[indices] = lam * x[indices] + (1 - lam) * avg_img
-        counts[label_class] = len(indices)
-    print(counts)
-    return x, y, lam
+    if alpha > 0:
+        lam = np.random.beta(alpha, alpha)
+    else:
+        lam = 1
+    batch_size = x.size()[0]
+    if use_cuda:
+        rand_index = torch.randperm(batch_size).cuda()
+    else:
+        rand_index = torch.randperm(batch_size)
+
+    # mixup based on similar pairs
+    index_classes = {0:[], 1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[]}
+    # add each index to respective class
+    for index in rand_index:
+        index_classes[y[index]].append(index)
+    mix_index_1 = []
+    mix_index_2 = []
+    unused_index = []
+    # now create new list of indexes to mix on
+    for index in rand_index:
+        # airplane
+        if y[index] == 0:
+            # bird
+            mix_index_1.append([index]*len(index_classes[2]))
+            mix_index_2.append(index_classes[2])
+        # automobile
+        elif y[index] == 1:
+            # truck
+            mix_index_1.append([index]*len(index_classes[9]))
+            mix_index_2.append(index_classes[9])
+        # bird
+        elif y[index] == 2:
+            # airplane
+            mix_index_1.append([index]*len(index_classes[0]))
+            mix_index_2.append(index_classes[0])
+        # cat
+        elif y[index] == 3:
+            # dog
+            mix_index_1.append([index]*len(index_classes[5]))
+            mix_index_2.append(index_classes[5])
+        # deer
+        elif y[index] == 4:
+            # horse
+            mix_index_1.append([index]*len(index_classes[7]))
+            mix_index_2.append(index_classes[7])
+        # dog
+        elif y[index] == 5:
+            # cat
+            mix_index_1.append([index]*len(index_classes[3]))
+            mix_index_2.append(index_classes[3])
+        # horse
+        elif y[index] == 7:
+            # deer
+            mix_index_1.append([index]*len(index_classes[4]))
+            mix_index_2.append(index_classes[4])
+        # truck
+        elif y[index] == 9:
+            # automobile
+            mix_index_1.append([index]*len(index_classes[1]))
+            mix_index_2.append(index_classes[1])
+        else:
+            # add itself
+            unused_index.append(index)
+
+    # randomly permute unused_index
+    mix_index_1.append(unused_index)
+    shuffle(unused_index)
+    mix_index_2.append(unused_index)
+
+    mixed_x = lam * x[mix_index_1] + (1 - lam) * x[mix_index_2, :]
+    y_a, y_b = y[mix_index_1], y[mix_index_2]
+    print("Number of mixed samples:", len(mixed_x))
+    return mixed_x, y_a, y_b, lam
 
 
-def train_normal(epoch, train_loader, model, optimizer):
-    train_total = 0
-    train_correct = 0
-
-    for i, (images, labels, indexes) in enumerate(train_loader):
-        ind = indexes.cpu().numpy().transpose()
-        batch_size = len(ind)
-
-        images = Variable(images).cuda()
-        labels = Variable(labels).cuda()
-
-        # apply feature extraction
-        # features = extract_features(images)
-        features = images
-
-        # Forward + Backward + Optimize
-        logits = model(features)
-
-        prec, _ = accuracy(logits, labels, topk=(1, 5))
-
-        # prec = 0.0
-        train_total += 1
-        train_correct += prec
-
-        # mixup loss
-        loss = F.cross_entropy(logits, labels, reduce=True)
-
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        if (i+1) % args.print_freq == 0:
-            print('Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, Loss: %.4f'
-                  % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, prec, loss.data))
-
-    train_acc = float(train_correct)/float(train_total)
-    return train_acc
-
-
-def train_avg(epoch, train_loader, model, optimizer):
+def smart_train(epoch, train_loader, model, optimizer):
     train_total = 0
     train_correct = 0
 
@@ -152,28 +149,31 @@ def train_avg(epoch, train_loader, model, optimizer):
         labels = Variable(labels).cuda()
 
         # mixup data
-        inputs, targets, lam = average_mixup(images, labels)
-        inputs, targets = map(
-            Variable, (inputs, targets))
+        inputs, targets_a, targets_b, lam = smart_mixup(images, labels, alpha=8)
+        inputs, targets_a, targets_b = map(
+            Variable, (inputs, targets_a, targets_b))
 
         # Forward + Backward + Optimize
         logits = model(inputs)
 
-        prec, _ = accuracy(logits, targets, topk=(1, 5))
+        prec_a, _ = accuracy(logits, targets_a, topk=(1, 5))
+        prec_b, _ = accuracy(logits, targets_b, topk=(1, 5))
 
+        prec = lam * prec_a + (1-lam)*prec_b
         # prec = 0.0
         train_total += 1
         train_correct += prec
 
         # mixup loss
-        loss = F.cross_entropy(logits, targets, reduce=True)
+        loss = lam * F.cross_entropy(logits, targets_a, reduce=True) + (
+            1 - lam) * F.cross_entropy(logits, targets_b, reduce=True)
 
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
         if (i+1) % args.print_freq == 0:
-            print('Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, Loss: %.4f'
-                  % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, prec, loss.data))
+            print('Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, A Training Accuracy: %.4F, B Training Accuracy: %.4F, Loss: %.4f'
+                  % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, prec, prec_a, prec_b, loss.data))
 
     train_acc = float(train_correct)/float(train_total)
     return train_acc
@@ -231,7 +231,7 @@ print('train_labels:', len(train_dataset.train_labels),
       train_dataset.train_labels[:10])
 # load model
 print('building model...')
-model = VecResNet34(num_classes)
+model = ResNet34(num_classes)
 # model = ResNet34(num_classes)
 print('building model done')
 optimizer = torch.optim.SGD(
@@ -265,7 +265,7 @@ for epoch in range(args.n_epoch):
     adjust_learning_rate(optimizer, epoch, alpha_plan)
     model.train()
     # train_acc = smart_train(epoch, train_loader, model, optimizer)
-    train_acc = train_normal(epoch, train_loader, model, optimizer)
+    train_acc = smart_train(epoch, train_loader, model, optimizer)
     # evaluate models
     test_acc = evaluate(test_loader=test_loader, model=model)
     if test_acc > max_test:
