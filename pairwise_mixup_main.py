@@ -131,9 +131,13 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
     shuffle(unused_index)
     mix_index_2.append(unused_index)
 
-    mixed_x = lam * x[mix_index_1] + (1 - lam) * x[mix_index_2, :]
+    print("Number of mixed samples:", len(mix_index_1))
+    print("1: ", mix_index_1)
+    print("2: ", mix_index_2)
+
+    mixed_x = lam * x[mix_index_1, :] + (1 - lam) * x[mix_index_2, :]
     y_a, y_b = y[mix_index_1], y[mix_index_2]
-    print("Number of mixed samples:", len(mixed_x))
+    
     return mixed_x, y_a, y_b, lam
 
 
