@@ -125,7 +125,7 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
             mix_index_2+=(index_classes[1])
         else:
             # add itself
-            unused_index+=(index)
+            unused_index.append(index)
 
     # randomly permute unused_index
     mix_index_1+=(unused_index)
