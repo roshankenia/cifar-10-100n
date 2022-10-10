@@ -71,7 +71,7 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
         rand_index = torch.randperm(batch_size).cuda()
     else:
         rand_index = torch.randperm(batch_size)
-
+    rand_index = rand_index.tolist()
     # mixup based on similar pairs
     index_classes = {0:[], 1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[]}
     # add each index to respective class
