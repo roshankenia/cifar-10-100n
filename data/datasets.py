@@ -3,6 +3,7 @@ import torchvision.transforms as transforms
 from .cifar import CIFAR10, CIFAR100
 import os
 import sys
+import torch
 # ensure we are running on the correct gpu
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "6"  # (xxxx is your specific GPU ID)
