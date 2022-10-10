@@ -71,54 +71,54 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
         rand_index = torch.randperm(batch_size).cuda()
     else:
         rand_index = torch.randperm(batch_size)
-    rand_index = rand_index.tolist()
+    y_copy = y.tolist()
     # mixup based on similar pairs
     index_classes = {0:[], 1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[]}
     # add each index to respective class
     for index in rand_index:
-        index_classes[y[index]].append(index)
+        index_classes[y_copy[index]].append(index)
     mix_index_1 = []
     mix_index_2 = []
     unused_index = []
     # now create new list of indexes to mix on
     for index in rand_index:
         # airplane
-        if y[index] == 0:
+        if y_copy[index] == 0:
             # bird
             mix_index_1.append([index]*len(index_classes[2]))
             mix_index_2.append(index_classes[2])
         # automobile
-        elif y[index] == 1:
+        elif y_copy[index] == 1:
             # truck
             mix_index_1.append([index]*len(index_classes[9]))
             mix_index_2.append(index_classes[9])
         # bird
-        elif y[index] == 2:
+        elif y_copy[index] == 2:
             # airplane
             mix_index_1.append([index]*len(index_classes[0]))
             mix_index_2.append(index_classes[0])
         # cat
-        elif y[index] == 3:
+        elif y_copy[index] == 3:
             # dog
             mix_index_1.append([index]*len(index_classes[5]))
             mix_index_2.append(index_classes[5])
         # deer
-        elif y[index] == 4:
+        elif y_copy[index] == 4:
             # horse
             mix_index_1.append([index]*len(index_classes[7]))
             mix_index_2.append(index_classes[7])
         # dog
-        elif y[index] == 5:
+        elif y_copy[index] == 5:
             # cat
             mix_index_1.append([index]*len(index_classes[3]))
             mix_index_2.append(index_classes[3])
         # horse
-        elif y[index] == 7:
+        elif y_copy[index] == 7:
             # deer
             mix_index_1.append([index]*len(index_classes[4]))
             mix_index_2.append(index_classes[4])
         # truck
-        elif y[index] == 9:
+        elif y_copy[index] == 9:
             # automobile
             mix_index_1.append([index]*len(index_classes[1]))
             mix_index_2.append(index_classes[1])
