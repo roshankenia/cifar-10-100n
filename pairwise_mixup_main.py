@@ -71,6 +71,7 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
         rand_index = torch.randperm(batch_size).cuda()
     else:
         rand_index = torch.randperm(batch_size)
+    rand_index = rand_index.tolist()
     y_copy = y.tolist()
     # mixup based on similar pairs
     index_classes = {0:[], 1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[]}
@@ -85,51 +86,51 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
         # airplane
         if y_copy[index] == 0:
             # bird
-            mix_index_1.append([index]*len(index_classes[2]))
-            mix_index_2.append(index_classes[2])
+            mix_index_1+=([index]*len(index_classes[2]))
+            mix_index_2+=(index_classes[2])
         # automobile
         elif y_copy[index] == 1:
             # truck
-            mix_index_1.append([index]*len(index_classes[9]))
-            mix_index_2.append(index_classes[9])
+            mix_index_1+=([index]*len(index_classes[9]))
+            mix_index_2+=(index_classes[9])
         # bird
         elif y_copy[index] == 2:
             # airplane
-            mix_index_1.append([index]*len(index_classes[0]))
-            mix_index_2.append(index_classes[0])
+            mix_index_1+=([index]*len(index_classes[0]))
+            mix_index_2+=(index_classes[0])
         # cat
         elif y_copy[index] == 3:
             # dog
-            mix_index_1.append([index]*len(index_classes[5]))
-            mix_index_2.append(index_classes[5])
+            mix_index_1+=([index]*len(index_classes[5]))
+            mix_index_2+=(index_classes[5])
         # deer
         elif y_copy[index] == 4:
             # horse
-            mix_index_1.append([index]*len(index_classes[7]))
-            mix_index_2.append(index_classes[7])
+            mix_index_1+=([index]*len(index_classes[7]))
+            mix_index_2+=(index_classes[7])
         # dog
         elif y_copy[index] == 5:
             # cat
-            mix_index_1.append([index]*len(index_classes[3]))
-            mix_index_2.append(index_classes[3])
+            mix_index_1+=([index]*len(index_classes[3]))
+            mix_index_2+=(index_classes[3])
         # horse
         elif y_copy[index] == 7:
             # deer
-            mix_index_1.append([index]*len(index_classes[4]))
-            mix_index_2.append(index_classes[4])
+            mix_index_1+=([index]*len(index_classes[4]))
+            mix_index_2+=(index_classes[4])
         # truck
         elif y_copy[index] == 9:
             # automobile
-            mix_index_1.append([index]*len(index_classes[1]))
-            mix_index_2.append(index_classes[1])
+            mix_index_1+=([index]*len(index_classes[1]))
+            mix_index_2+=(index_classes[1])
         else:
             # add itself
-            unused_index.append(index)
+            unused_index+=(index)
 
     # randomly permute unused_index
-    mix_index_1.append(unused_index)
+    mix_index_1+=(unused_index)
     shuffle(unused_index)
-    mix_index_2.append(unused_index)
+    mix_index_2+=(unused_index)
 
     print("Number of mixed samples:", len(mix_index_1))
     print("1: ", mix_index_1)
