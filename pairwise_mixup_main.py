@@ -260,7 +260,7 @@ epoch = 0
 train_acc = 0
 
 # training
-file = open("results.txt", "a")
+file = open("results_pairwise.txt", "a")
 max_test = 0
 
 noise_prior_cur = noise_prior
