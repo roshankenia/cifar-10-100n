@@ -1,0 +1,25 @@
+GPU is being properly used
+GPU is being properly used
+GPU is being properly used
+GPU is being properly used
+GPU is being properly used
+GPU is being properly used
+Files already downloaded and verified
+Loaded aggre_label from ./data/CIFAR-10_human.pt.
+The overall noise rate is 0.09009999999999996
+noisy labels loaded from ./data/CIFAR-10_human.pt
+The noisy data ratio in each class is [0.10628 0.11018 0.10814 0.09242 0.08698 0.09926 0.09232 0.10006 0.10694
+ 0.09742]
+over all noise rate is  0.0901
+train_labels: 50000 [6, 9, 9, 4, 1, 1, 2, 7, 8, 3]
+building model...
+building model done
+epoch 0
+/home/rokenia/.local/lib/python3.6/site-packages/torch/nn/_reduction.py:42: UserWarning: size_average and reduce args will be deprecated, please use reduction='mean' instead.
+  warnings.warn(warning.format(ret))
+Traceback (most recent call last):
+  File "pairwise_mixup_main.py", line 273, in <module>
+    train_acc = smart_train(epoch, train_loader, model, optimizer)
+  File "pairwise_mixup_main.py", line 153, in smart_train
+    images = Variable(images).cuda()
+KeyboardInterrupt
