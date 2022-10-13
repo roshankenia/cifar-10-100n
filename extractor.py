@@ -119,13 +119,12 @@ for i, (images, labels, indexes) in enumerate(train_loader):
 
     images = Variable(images).cuda()
     labels = Variable(labels).cuda()
-    for img in images:
-        # We only extract features, so we don't need gradient
-        with torch.no_grad():
-            # Extract the feature from the image
-            feature = new_model(img)
-            # Convert to NumPy Array, Reshape it, and save it to features variable
-        features.append(feature.cpu().detach().numpy().reshape(-1))
+    # We only extract features, so we don't need gradient
+    with torch.no_grad():
+        # Extract the features from the images
+        feature = new_model(images)
+        # Convert to NumPy Array, Reshape it, and save it to features variable
+    features.append(feature.cpu().detach().numpy().reshape(-1))
 
 # Convert to NumPy Array
 features = np.array(features)
