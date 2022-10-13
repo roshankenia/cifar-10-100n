@@ -4,7 +4,7 @@ import torch
 import torchvision
 import torch.nn.functional as F
 from torch.autograd import Variable
-from data.datasets import vec_input_dataset
+from data.datasets import input_dataset
 from models import *
 import argparse
 import sys
@@ -61,13 +61,7 @@ def accuracy(logit, target, topk=(1,)):
 
 
 def extract_features(x_data):
-    print(x_data.shape)
-    # define our pretrained resnet
-    model = torchvision.models.resnet34(pretrained=True).cuda()
-    num_ftrs = model.fc.in_features
-    model.fc = nn.Linear(num_ftrs, 10)
-    # remove last fully connected layer from model
-    model = torch.nn.Sequential(*(list(model.children())[:-1]))
+    # print(x_data.shape)
     # input data to model
     features = model(x_data)
     # features = torch.squeeze(features)
@@ -114,8 +108,8 @@ def train_normal(epoch, train_loader, model, optimizer):
         labels = Variable(labels).cuda()
 
         # apply feature extraction
-        # features = extract_features(images)
-        features = images
+        features = extract_features(images)
+        # features = images
 
         # Forward + Backward + Optimize
         logits = model(features)
@@ -222,7 +216,7 @@ if args.noise_path is None:
         raise NameError(f'Undefined dataset {args.dataset}')
 
 
-train_dataset, test_dataset, num_classes, num_training_samples = vec_input_dataset(
+train_dataset, test_dataset, num_classes, num_training_samples = input_dataset(
     args.dataset, args.noise_type, args.noise_path, args.is_human)
 
 noise_prior = train_dataset.noise_prior
@@ -231,7 +225,7 @@ print('train_labels:', len(train_dataset.train_labels),
       train_dataset.train_labels[:10])
 # load model
 print('building model...')
-model = VecResNet34(num_classes)
+model = ResNet34(num_classes)
 # model = ResNet34(num_classes)
 print('building model done')
 optimizer = torch.optim.SGD(
@@ -255,8 +249,20 @@ epoch = 0
 train_acc = 0
 
 # training
-file = open("results.txt", "a")
+file = open("results_feature.txt", "a")
 max_test = 0
+
+# define our pretrained resnet
+feature_extractor = torchvision.models.resnet34(pretrained=True).cuda()
+num_ftrs = feature_extractor.fc.in_features
+feature_extractor.fc = nn.Linear(num_ftrs, num_classes)
+# remove last fully connected layer from model
+feature_extractor = torch.nn.Sequential(
+    *(list(feature_extractor.children())[:-1]))
+
+print(feature_extractor)
+
+exit()
 
 noise_prior_cur = noise_prior
 for epoch in range(args.n_epoch):
