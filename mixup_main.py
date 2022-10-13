@@ -79,195 +79,195 @@ def mixup_data(x, y, alpha=1.0, use_cuda=True):
     return mixed_x, y_a, y_b, lam
 
 
-def average_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
-    '''Returns mixed inputs, pairs of targets, and lambda'''
-    # if alpha > 0:
-    #     lam = np.random.beta(alpha, alpha)
-    # else:
-    #     lam = 1
-    lam = 0.9
-    # iterate through each class
-    counts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    for label_class in range(num_classes):
-        # find all samples with this label class
-        indices = [index for index, value in enumerate(
-            y) if value == label_class]
-        label_samples = x[indices]
-        # calculate average image
-        avg_img = torch.mean(label_samples, 0)
-        # mix
-        x[indices] = lam * x[indices] + (1 - lam) * avg_img
-        counts[label_class] = len(indices)
-    print(counts)
-    return x, y, lam
+# def average_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
+#     '''Returns mixed inputs, pairs of targets, and lambda'''
+#     # if alpha > 0:
+#     #     lam = np.random.beta(alpha, alpha)
+#     # else:
+#     #     lam = 1
+#     lam = 0.9
+#     # iterate through each class
+#     counts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+#     for label_class in range(num_classes):
+#         # find all samples with this label class
+#         indices = [index for index, value in enumerate(
+#             y) if value == label_class]
+#         label_samples = x[indices]
+#         # calculate average image
+#         avg_img = torch.mean(label_samples, 0)
+#         # mix
+#         x[indices] = lam * x[indices] + (1 - lam) * avg_img
+#         counts[label_class] = len(indices)
+#     print(counts)
+#     return x, y, lam
 
 
-def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
-    '''Returns mixed inputs, pairs of targets, and lambda'''
-    if alpha > 0:
-        lam = np.random.beta(alpha, alpha)
-    else:
-        lam = 1
-    batch_size = x.size()[0]
-    if use_cuda:
-        rand_index = torch.randperm(batch_size).cuda()
-    else:
-        rand_index = torch.randperm(batch_size)
+# def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
+#     '''Returns mixed inputs, pairs of targets, and lambda'''
+#     if alpha > 0:
+#         lam = np.random.beta(alpha, alpha)
+#     else:
+#         lam = 1
+#     batch_size = x.size()[0]
+#     if use_cuda:
+#         rand_index = torch.randperm(batch_size).cuda()
+#     else:
+#         rand_index = torch.randperm(batch_size)
 
-    # mixup based on similar pairs
-    index_classes = [[], [], [], [], [], [], [], [], [], []]
-    index_counts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    # add each index to respective class
-    for index in rand_index:
-        index_classes[y[index]].append(index)
-        index_counts[y[index]] += 1
-    index_total = index_counts.copy()
-    unused_index = []
-    need_to_set = []
-    i = 0
-    # now create new list of indexes to mix on
-    indices = []
-    for index in rand_index:
-        # airplane
-        if y[index] == 0 and index_counts[2] > 0:
-            # bird
-            indices.append(index_classes[2][index_total[2] - index_counts[2]])
-            index_counts[2] -= 1
-        # automobile
-        elif y[index] == 1 and index_counts[9] > 0:
-            # truck
-            indices.append(index_classes[9][index_total[9] - index_counts[9]])
-            index_counts[9] -= 1
-        # bird
-        elif y[index] == 2 and index_counts[0] > 0:
-            # airplane
-            indices.append(index_classes[0][index_total[0] - index_counts[0]])
-            index_counts[0] -= 1
-        # cat
-        elif y[index] == 3 and index_counts[5] > 0:
-            # dog
-            indices.append(index_classes[5][index_total[5] - index_counts[5]])
-            index_counts[5] -= 1
-        # deer
-        elif y[index] == 4 and index_counts[7] > 0:
-            # horse
-            indices.append(index_classes[7][index_total[7] - index_counts[7]])
-            index_counts[7] -= 1
-        # dog
-        elif y[index] == 5 and index_counts[3] > 0:
-            # cat
-            indices.append(index_classes[3][index_total[3] - index_counts[3]])
-            index_counts[3] -= 1
-        # horse
-        elif y[index] == 7 and index_counts[4] > 0:
-            # deer
-            indices.append(index_classes[4][index_total[4] - index_counts[4]])
-            index_counts[4] -= 1
-        # truck
-        elif y[index] == 9 and index_counts[1] > 0:
-            # automobile
-            indices.append(index_classes[1][index_total[1] - index_counts[1]])
-            index_counts[1] -= 1
-        else:
-            # add itself
-            indices.append(-1)
-            need_to_set.append(i)
-            unused_index.append(index)
-        i += 1
+#     # mixup based on similar pairs
+#     index_classes = [[], [], [], [], [], [], [], [], [], []]
+#     index_counts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+#     # add each index to respective class
+#     for index in rand_index:
+#         index_classes[y[index]].append(index)
+#         index_counts[y[index]] += 1
+#     index_total = index_counts.copy()
+#     unused_index = []
+#     need_to_set = []
+#     i = 0
+#     # now create new list of indexes to mix on
+#     indices = []
+#     for index in rand_index:
+#         # airplane
+#         if y[index] == 0 and index_counts[2] > 0:
+#             # bird
+#             indices.append(index_classes[2][index_total[2] - index_counts[2]])
+#             index_counts[2] -= 1
+#         # automobile
+#         elif y[index] == 1 and index_counts[9] > 0:
+#             # truck
+#             indices.append(index_classes[9][index_total[9] - index_counts[9]])
+#             index_counts[9] -= 1
+#         # bird
+#         elif y[index] == 2 and index_counts[0] > 0:
+#             # airplane
+#             indices.append(index_classes[0][index_total[0] - index_counts[0]])
+#             index_counts[0] -= 1
+#         # cat
+#         elif y[index] == 3 and index_counts[5] > 0:
+#             # dog
+#             indices.append(index_classes[5][index_total[5] - index_counts[5]])
+#             index_counts[5] -= 1
+#         # deer
+#         elif y[index] == 4 and index_counts[7] > 0:
+#             # horse
+#             indices.append(index_classes[7][index_total[7] - index_counts[7]])
+#             index_counts[7] -= 1
+#         # dog
+#         elif y[index] == 5 and index_counts[3] > 0:
+#             # cat
+#             indices.append(index_classes[3][index_total[3] - index_counts[3]])
+#             index_counts[3] -= 1
+#         # horse
+#         elif y[index] == 7 and index_counts[4] > 0:
+#             # deer
+#             indices.append(index_classes[4][index_total[4] - index_counts[4]])
+#             index_counts[4] -= 1
+#         # truck
+#         elif y[index] == 9 and index_counts[1] > 0:
+#             # automobile
+#             indices.append(index_classes[1][index_total[1] - index_counts[1]])
+#             index_counts[1] -= 1
+#         else:
+#             # add itself
+#             indices.append(-1)
+#             need_to_set.append(i)
+#             unused_index.append(index)
+#         i += 1
 
-    # randomly permute unused_index
-    shuffle(unused_index)
-    # set unused to normal mixup
-    indices = np.array(indices)
-    indices[need_to_set] = unused_index
-    indices = indices.tolist()
-    # print('num use:', (len(indices)-len(unused_index)),
-    #       'num unused:', len(unused_index))
+#     # randomly permute unused_index
+#     shuffle(unused_index)
+#     # set unused to normal mixup
+#     indices = np.array(indices)
+#     indices[need_to_set] = unused_index
+#     indices = indices.tolist()
+#     # print('num use:', (len(indices)-len(unused_index)),
+#     #       'num unused:', len(unused_index))
 
-    mixed_x = lam * x + (1 - lam) * x[indices, :]
-    y_a, y_b = y, y[indices]
-    return mixed_x, y_a, y_b, lam
-
-
-def smart_train(epoch, train_loader, model, optimizer):
-    train_total = 0
-    train_correct = 0
-
-    for i, (images, labels, indexes) in enumerate(train_loader):
-        ind = indexes.cpu().numpy().transpose()
-        batch_size = len(ind)
-
-        images = Variable(images).cuda()
-        labels = Variable(labels).cuda()
-
-        # mixup data
-        inputs, targets_a, targets_b, lam = smart_mixup(images, labels, alpha=8)
-        inputs, targets_a, targets_b = map(
-            Variable, (inputs, targets_a, targets_b))
-
-        # Forward + Backward + Optimize
-        logits = model(inputs)
-
-        prec_a, _ = accuracy(logits, targets_a, topk=(1, 5))
-        prec_b, _ = accuracy(logits, targets_b, topk=(1, 5))
-
-        prec = lam * prec_a + (1-lam)*prec_b
-        # prec = 0.0
-        train_total += 1
-        train_correct += prec
-
-        # mixup loss
-        loss = lam * F.cross_entropy(logits, targets_a, reduce=True) + (
-            1 - lam) * F.cross_entropy(logits, targets_b, reduce=True)
-
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        if (i+1) % args.print_freq == 0:
-            print('Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, A Training Accuracy: %.4F, B Training Accuracy: %.4F, Loss: %.4f'
-                  % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, prec, prec_a, prec_b, loss.data))
-
-    train_acc = float(train_correct)/float(train_total)
-    return train_acc
+#     mixed_x = lam * x + (1 - lam) * x[indices, :]
+#     y_a, y_b = y, y[indices]
+#     return mixed_x, y_a, y_b, lam
 
 
-def train_avg(epoch, train_loader, model, optimizer):
-    train_total = 0
-    train_correct = 0
+# def smart_train(epoch, train_loader, model, optimizer):
+#     train_total = 0
+#     train_correct = 0
 
-    for i, (images, labels, indexes) in enumerate(train_loader):
-        ind = indexes.cpu().numpy().transpose()
-        batch_size = len(ind)
+#     for i, (images, labels, indexes) in enumerate(train_loader):
+#         ind = indexes.cpu().numpy().transpose()
+#         batch_size = len(ind)
 
-        images = Variable(images).cuda()
-        labels = Variable(labels).cuda()
+#         images = Variable(images).cuda()
+#         labels = Variable(labels).cuda()
 
-        # mixup data
-        inputs, targets, lam = average_mixup(images, labels)
-        inputs, targets = map(
-            Variable, (inputs, targets))
+#         # mixup data
+#         inputs, targets_a, targets_b, lam = smart_mixup(images, labels, alpha=8)
+#         inputs, targets_a, targets_b = map(
+#             Variable, (inputs, targets_a, targets_b))
 
-        # Forward + Backward + Optimize
-        logits = model(inputs)
+#         # Forward + Backward + Optimize
+#         logits = model(inputs)
 
-        prec, _ = accuracy(logits, targets, topk=(1, 5))
+#         prec_a, _ = accuracy(logits, targets_a, topk=(1, 5))
+#         prec_b, _ = accuracy(logits, targets_b, topk=(1, 5))
 
-        # prec = 0.0
-        train_total += 1
-        train_correct += prec
+#         prec = lam * prec_a + (1-lam)*prec_b
+#         # prec = 0.0
+#         train_total += 1
+#         train_correct += prec
 
-        # mixup loss
-        loss = F.cross_entropy(logits, targets, reduce=True)
+#         # mixup loss
+#         loss = lam * F.cross_entropy(logits, targets_a, reduce=True) + (
+#             1 - lam) * F.cross_entropy(logits, targets_b, reduce=True)
 
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        if (i+1) % args.print_freq == 0:
-            print('Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, Loss: %.4f'
-                  % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, prec, loss.data))
+#         optimizer.zero_grad()
+#         loss.backward()
+#         optimizer.step()
+#         if (i+1) % args.print_freq == 0:
+#             print('Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, A Training Accuracy: %.4F, B Training Accuracy: %.4F, Loss: %.4f'
+#                   % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, prec, prec_a, prec_b, loss.data))
 
-    train_acc = float(train_correct)/float(train_total)
-    return train_acc
+#     train_acc = float(train_correct)/float(train_total)
+#     return train_acc
+
+
+# def train_avg(epoch, train_loader, model, optimizer):
+#     train_total = 0
+#     train_correct = 0
+
+#     for i, (images, labels, indexes) in enumerate(train_loader):
+#         ind = indexes.cpu().numpy().transpose()
+#         batch_size = len(ind)
+
+#         images = Variable(images).cuda()
+#         labels = Variable(labels).cuda()
+
+#         # mixup data
+#         inputs, targets, lam = average_mixup(images, labels)
+#         inputs, targets = map(
+#             Variable, (inputs, targets))
+
+#         # Forward + Backward + Optimize
+#         logits = model(inputs)
+
+#         prec, _ = accuracy(logits, targets, topk=(1, 5))
+
+#         # prec = 0.0
+#         train_total += 1
+#         train_correct += prec
+
+#         # mixup loss
+#         loss = F.cross_entropy(logits, targets, reduce=True)
+
+#         optimizer.zero_grad()
+#         loss.backward()
+#         optimizer.step()
+#         if (i+1) % args.print_freq == 0:
+#             print('Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, Loss: %.4f'
+#                   % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, prec, loss.data))
+
+#     train_acc = float(train_correct)/float(train_total)
+#     return train_acc
 
 
 def train(epoch, train_loader, model, optimizer):
@@ -367,10 +367,10 @@ print('building model done')
 optimizer = torch.optim.SGD(
     model.parameters(), lr=learning_rate, weight_decay=0.0005, momentum=0.9)
 
-train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
-                                           batch_size=128,
-                                           num_workers=args.num_workers,
-                                           shuffle=True)
+# train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
+#                                            batch_size=128,
+#                                            num_workers=args.num_workers,
+#                                            shuffle=True)
 
 
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
@@ -387,11 +387,17 @@ train_acc = 0
 # training
 noise_prior_cur = noise_prior
 for epoch in range(args.n_epoch):
+
+    train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
+                                               batch_size=128,
+                                               num_workers=args.num_workers,
+                                               shuffle=True)
+
     # train models
     print(f'epoch {epoch}')
     adjust_learning_rate(optimizer, epoch, alpha_plan)
     model.train()
-    train_acc = smart_train(epoch, train_loader, model, optimizer)
+    train_acc = train(epoch, train_loader, model, optimizer)
     # evaluate models
     test_acc = evaluate(test_loader=test_loader, model=model)
     # save results
