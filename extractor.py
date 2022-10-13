@@ -135,6 +135,9 @@ features = np.array(features)
 
 # Initialize the model
 model = KMeans(n_clusters=10, random_state=42)
+model = model.cuda()
+
+features = features.cuda()
 
 # Fit the data into the model
 model.fit(features)
