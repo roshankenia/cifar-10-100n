@@ -126,7 +126,7 @@ for i, (images, labels, indexes) in enumerate(train_loader):
         # Convert to NumPy Array, Reshape it, and save it to features variable
     features.append(feature.cpu().detach().numpy().reshape(-1))
 
-print(features)
+print(features.shape)
 
 # Convert to NumPy Array
 features = np.array(features)
