@@ -112,7 +112,7 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           num_workers=args.num_workers,
                                           shuffle=False)
 
-
+print('extracting features')
 for i, (images, labels, indexes) in enumerate(train_loader):
     ind = indexes.cpu().numpy().transpose()
     batch_size = len(ind)
@@ -125,6 +125,8 @@ for i, (images, labels, indexes) in enumerate(train_loader):
         feature = new_model(images)
         # Convert to NumPy Array, Reshape it, and save it to features variable
     features.append(feature.cpu().detach().numpy().reshape(-1))
+
+print(features)
 
 # Convert to NumPy Array
 features = np.array(features)
