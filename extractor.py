@@ -69,6 +69,7 @@ new_model = new_model.cuda()
 
 # Will contain the feature
 features = []
+noisy_labels = []
 
 
 #####################################main code ################################################
@@ -113,6 +114,7 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           shuffle=False)
 
 print('extracting features')
+x = 0
 for i, (images, labels, indexes) in enumerate(train_loader):
     ind = indexes.cpu().numpy().transpose()
     batch_size = len(ind)
@@ -126,9 +128,15 @@ for i, (images, labels, indexes) in enumerate(train_loader):
         # Convert to NumPy Array, Reshape it, and save it to features variable
     for j in range(len(feature)):
         features.append(feature[j].cpu().detach().numpy())
+        noisy_labels.append(labels[j])
+
+    x += 1
+    if x == 5:
+        break
 
 # Convert to NumPy Array
 features = np.array(features)
+noisy_labels = np.array(noisy_labels)
 print(features.shape)
 
 print('clustering')
@@ -143,8 +151,6 @@ labels = model.labels_
 
 print(labels)  # [4 3 3 ... 0 0 0]
 
-
-sample_submission = pd.read_csv('sample_submission.csv')
-new_submission = sample_submission
-new_submission['label'] = labels
-new_submission.to_csv('submission_1.csv', index=False)
+# calculate average actual label for each given label
+for i in range(num_classes):
+    print(np.where(labels == i))
