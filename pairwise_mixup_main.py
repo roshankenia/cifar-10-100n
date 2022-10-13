@@ -95,52 +95,89 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
             num_use = math.ceil(1/4 * len(index_classes[2]))
             rand_use = torch.randperm(len(index_classes[2]))
             rand_use = rand_use[:num_use]
-            print('using:', rand_use)
-            mix_index_1 += ([index]*num_use)
-            mix_index_2 += ((index_classes[2][rand_use]).tolist())
+            print('Using: ', rand_use)
+            mix_index_1 = np.concatenate(mix_index_1, [index]*num_use)
+            mix_index_2 = np.concatenate(
+                mix_index_2, index_classes[2][rand_use])
         # automobile
         elif y_copy[index] == 1:
             # truck
-            mix_index_1 += ([index]*len(index_classes[9]))
-            mix_index_2 += (index_classes[9])
+            num_use = math.ceil(1/4 * len(index_classes[9]))
+            rand_use = torch.randperm(len(index_classes[9]))
+            rand_use = rand_use[:num_use]
+            print('Using: ', rand_use)
+            mix_index_1 = np.concatenate(mix_index_1, [index]*num_use)
+            mix_index_2 = np.concatenate(
+                mix_index_2, index_classes[9][rand_use])
         # bird
         elif y_copy[index] == 2:
             # airplane
-            mix_index_1 += ([index]*len(index_classes[0]))
-            mix_index_2 += (index_classes[0])
+            num_use = math.ceil(1/4 * len(index_classes[0]))
+            rand_use = torch.randperm(len(index_classes[0]))
+            rand_use = rand_use[:num_use]
+            print('Using: ', rand_use)
+            mix_index_1 = np.concatenate(mix_index_1, [index]*num_use)
+            mix_index_2 = np.concatenate(
+                mix_index_2, index_classes[0][rand_use])
         # cat
         elif y_copy[index] == 3:
             # dog
-            mix_index_1 += ([index]*len(index_classes[5]))
-            mix_index_2 += (index_classes[5])
+            num_use = math.ceil(1/4 * len(index_classes[5]))
+            rand_use = torch.randperm(len(index_classes[5]))
+            rand_use = rand_use[:num_use]
+            print('Using: ', rand_use)
+            mix_index_1 = np.concatenate(mix_index_1, [index]*num_use)
+            mix_index_2 = np.concatenate(
+                mix_index_2, index_classes[5][rand_use])
         # deer
         elif y_copy[index] == 4:
             # horse
-            mix_index_1 += ([index]*len(index_classes[7]))
-            mix_index_2 += (index_classes[7])
+            num_use = math.ceil(1/4 * len(index_classes[7]))
+            rand_use = torch.randperm(len(index_classes[7]))
+            rand_use = rand_use[:num_use]
+            print('Using: ', rand_use)
+            mix_index_1 = np.concatenate(mix_index_1, [index]*num_use)
+            mix_index_2 = np.concatenate(
+                mix_index_2, index_classes[7][rand_use])
         # dog
         elif y_copy[index] == 5:
             # cat
-            mix_index_1 += ([index]*len(index_classes[3]))
-            mix_index_2 += (index_classes[3])
+            num_use = math.ceil(1/4 * len(index_classes[3]))
+            rand_use = torch.randperm(len(index_classes[3]))
+            rand_use = rand_use[:num_use]
+            print('Using: ', rand_use)
+            mix_index_1 = np.concatenate(mix_index_1, [index]*num_use)
+            mix_index_2 = np.concatenate(
+                mix_index_2, index_classes[3][rand_use])
         # horse
         elif y_copy[index] == 7:
             # deer
-            mix_index_1 += ([index]*len(index_classes[4]))
-            mix_index_2 += (index_classes[4])
+            num_use = math.ceil(1/4 * len(index_classes[4]))
+            rand_use = torch.randperm(len(index_classes[4]))
+            rand_use = rand_use[:num_use]
+            print('Using: ', rand_use)
+            mix_index_1 = np.concatenate(mix_index_1, [index]*num_use)
+            mix_index_2 = np.concatenate(
+                mix_index_2, index_classes[4][rand_use])
+
         # truck
         elif y_copy[index] == 9:
             # automobile
-            mix_index_1 += ([index]*len(index_classes[1]))
-            mix_index_2 += (index_classes[1])
+            num_use = math.ceil(1/4 * len(index_classes[1]))
+            rand_use = torch.randperm(len(index_classes[1]))
+            rand_use = rand_use[:num_use]
+            print('Using: ', rand_use)
+            mix_index_1 = np.concatenate(mix_index_1, [index]*num_use)
+            mix_index_2 = np.concatenate(
+                mix_index_2, index_classes[1][rand_use])
         else:
             # add itself
             unused_index.append(index)
 
     # randomly permute unused_index
-    mix_index_1 += (unused_index)
+    mix_index_1 = np.concatenate(mix_index_1, unused_index)
     shuffle(unused_index)
-    mix_index_2 += (unused_index)
+    mix_index_2 = np.concatenate(mix_index_2, unused_index)
 
     # print("Number of mixed samples:", len(mix_index_1))
     # print("1: ", mix_index_1)
