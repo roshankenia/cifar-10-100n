@@ -131,7 +131,7 @@ for i, (images, labels, indexes) in enumerate(train_loader):
         noisy_labels.append(labels[j].cpu().detach().numpy())
 
     x += 1
-    if x == 5:
+    if x == 10:
         break
 
 # Convert to NumPy Array
