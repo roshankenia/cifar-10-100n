@@ -132,7 +132,7 @@ print(features)
 # Convert to NumPy Array
 features = np.array(features)
 
-
+print('clustering')
 # Initialize the model
 model = KMeans(n_clusters=10, random_state=42)
 model = model.cuda()
