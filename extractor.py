@@ -63,7 +63,7 @@ parser.add_argument('--is_human', action='store_true', default=False)
 
 
 # define our pretrained resnet
-model = torchvision.models.resnet34(pretrained=True).cuda()
+model = torchvision.models.resnet151(pretrained=True).cuda()
 num_ftrs = model.fc.in_features
 model.fc = nn.Linear(num_ftrs, 10)
 # remove last fully connected layer from model
