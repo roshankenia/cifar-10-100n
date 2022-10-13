@@ -82,6 +82,8 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
     # add each index to respective class
     for index in rand_index:
         index_classes[y_copy[index]].append(index)
+    for i in range(10):
+        index_classes[i] = np.array(index_classes[i])
     mix_index_1 = []
     mix_index_2 = []
     unused_index = []
@@ -93,6 +95,7 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
             num_use = math.ceil(1/4 * len(index_classes[2]))
             rand_use = torch.randperm(len(index_classes[2]))
             rand_use = rand_use[:num_use]
+            print('using:', rand_use)
             mix_index_1 += ([index]*num_use)
             mix_index_2 += (index_classes[2][rand_use])
         # automobile
