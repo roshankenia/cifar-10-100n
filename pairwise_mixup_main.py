@@ -183,9 +183,9 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
             unused_index.append(index)
 
     # randomly permute unused_index
-    mix_index_1 = np.concatenate(mix_index_1, np.array(unused_index))
+    mix_index_1 = np.concatenate((mix_index_1, np.array(unused_index)))
     shuffle(unused_index)
-    mix_index_2 = np.concatenate(mix_index_2, np.array(unused_index))
+    mix_index_2 = np.concatenate((mix_index_2, np.array(unused_index)))
 
     # print("Number of mixed samples:", len(mix_index_1))
     # print("1: ", mix_index_1)
