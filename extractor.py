@@ -5,6 +5,7 @@ import torch
 from torch import optim, nn
 from torchvision import models, transforms
 from torch.autograd import Variable
+import torchvision
 from data.datasets import input_dataset
 import argparse
 
@@ -34,38 +35,44 @@ parser.add_argument('--num_workers', type=int, default=4,
                     help='how many subprocesses to use for data loading')
 parser.add_argument('--is_human', action='store_true', default=False)
 
+# class FeatureExtractor(nn.Module):
+#     def __init__(self, model):
+#         super(FeatureExtractor, self).__init__()
+#         # Extract VGG-16 Feature Layers
+#         self.features = list(model.features)
+#         self.features = nn.Sequential(*self.features)
+#         # Extract VGG-16 Average Pooling Layer
+#         self.pooling = model.avgpool
+#         # Convert the image into one-dimensional vector
+#         self.flatten = nn.Flatten()
+#         # Extract the first part of fully-connected layer from VGG16
+#         self.fc = model.classifier[0]
 
-model = models.vgg16(pretrained=True)
-
-
-class FeatureExtractor(nn.Module):
-    def __init__(self, model):
-        super(FeatureExtractor, self).__init__()
-        # Extract VGG-16 Feature Layers
-        self.features = list(model.features)
-        self.features = nn.Sequential(*self.features)
-        # Extract VGG-16 Average Pooling Layer
-        self.pooling = model.avgpool
-        # Convert the image into one-dimensional vector
-        self.flatten = nn.Flatten()
-        # Extract the first part of fully-connected layer from VGG16
-        self.fc = model.classifier[0]
-
-    def forward(self, x):
-        # It will take the input 'x' until it returns the feature vector called 'out'
-        out = self.features(x)
-        out = self.pooling(out)
-        out = self.flatten(out)
-        out = self.fc(out)
-        return out
+#     def forward(self, x):
+#         # It will take the input 'x' until it returns the feature vector called 'out'
+#         out = self.features(x)
+#         out = self.pooling(out)
+#         out = self.flatten(out)
+#         out = self.fc(out)
+#         return out
 
 
-# Initialize the model
-model = models.vgg16(pretrained=True)
-new_model = FeatureExtractor(model)
+# # Initialize the model
+# model = models.vgg16(pretrained=True)
+# new_model = FeatureExtractor(model)
+
+
+# define our pretrained resnet
+model = torchvision.models.resnet34(pretrained=True).cuda()
+num_ftrs = model.fc.in_features
+model.fc = nn.Linear(num_ftrs, 10)
+# remove last fully connected layer from model
+model = torch.nn.Sequential(*(list(model.children())[:-1]))
+
 
 # Change the device to GPU
-new_model = new_model.cuda()
+# new_model = new_model.cuda()
+new_model = model
 
 # Will contain the feature
 features = []
@@ -114,6 +121,7 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           shuffle=False)
 
 print('extracting features')
+x = 1
 for i, (images, labels, indexes) in enumerate(train_loader):
     ind = indexes.cpu().numpy().transpose()
     batch_size = len(ind)
@@ -129,6 +137,10 @@ for i, (images, labels, indexes) in enumerate(train_loader):
         features.append(feature[j].cpu().detach().numpy())
         noisy_labels.append(labels[j].cpu().detach().numpy())
 
+    x += 1
+    if x == 10:
+        break
+
 # Convert to NumPy Array
 features = np.array(features)
 noisy_labels = np.array(noisy_labels)
@@ -136,7 +148,7 @@ print(features.shape)
 
 print('clustering')
 # Initialize the model
-model = KMeans(n_clusters=num_classes, random_state=42)
+model = KMeans(n_clusters=num_classes)
 
 # Fit the data into the model
 model.fit(features)
