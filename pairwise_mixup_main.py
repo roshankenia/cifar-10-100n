@@ -96,7 +96,7 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
             rand_use = torch.randperm(len(index_classes[2]))
             rand_use = rand_use[:num_use]
             print('Using: ', rand_use)
-            mix_index_1 = np.concatenate(mix_index_1, [index]*num_use)
+            mix_index_1 = np.concatenate(mix_index_1, np.full(num_use, index))
             mix_index_2 = np.concatenate(
                 mix_index_2, index_classes[2][rand_use])
         # automobile
@@ -106,7 +106,7 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
             rand_use = torch.randperm(len(index_classes[9]))
             rand_use = rand_use[:num_use]
             print('Using: ', rand_use)
-            mix_index_1 = np.concatenate(mix_index_1, [index]*num_use)
+            mix_index_1 = np.concatenate(mix_index_1, np.full(num_use, index))
             mix_index_2 = np.concatenate(
                 mix_index_2, index_classes[9][rand_use])
         # bird
@@ -116,7 +116,7 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
             rand_use = torch.randperm(len(index_classes[0]))
             rand_use = rand_use[:num_use]
             print('Using: ', rand_use)
-            mix_index_1 = np.concatenate(mix_index_1, [index]*num_use)
+            mix_index_1 = np.concatenate(mix_index_1, np.full(num_use, index))
             mix_index_2 = np.concatenate(
                 mix_index_2, index_classes[0][rand_use])
         # cat
@@ -126,7 +126,7 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
             rand_use = torch.randperm(len(index_classes[5]))
             rand_use = rand_use[:num_use]
             print('Using: ', rand_use)
-            mix_index_1 = np.concatenate(mix_index_1, [index]*num_use)
+            mix_index_1 = np.concatenate(mix_index_1, np.full(num_use, index))
             mix_index_2 = np.concatenate(
                 mix_index_2, index_classes[5][rand_use])
         # deer
@@ -136,7 +136,7 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
             rand_use = torch.randperm(len(index_classes[7]))
             rand_use = rand_use[:num_use]
             print('Using: ', rand_use)
-            mix_index_1 = np.concatenate(mix_index_1, [index]*num_use)
+            mix_index_1 = np.concatenate(mix_index_1, np.full(num_use, index))
             mix_index_2 = np.concatenate(
                 mix_index_2, index_classes[7][rand_use])
         # dog
@@ -146,7 +146,7 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
             rand_use = torch.randperm(len(index_classes[3]))
             rand_use = rand_use[:num_use]
             print('Using: ', rand_use)
-            mix_index_1 = np.concatenate(mix_index_1, [index]*num_use)
+            mix_index_1 = np.concatenate(mix_index_1, np.full(num_use, index))
             mix_index_2 = np.concatenate(
                 mix_index_2, index_classes[3][rand_use])
         # horse
@@ -156,7 +156,7 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
             rand_use = torch.randperm(len(index_classes[4]))
             rand_use = rand_use[:num_use]
             print('Using: ', rand_use)
-            mix_index_1 = np.concatenate(mix_index_1, [index]*num_use)
+            mix_index_1 = np.concatenate(mix_index_1, np.full(num_use, index))
             mix_index_2 = np.concatenate(
                 mix_index_2, index_classes[4][rand_use])
 
@@ -167,7 +167,7 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
             rand_use = torch.randperm(len(index_classes[1]))
             rand_use = rand_use[:num_use]
             print('Using: ', rand_use)
-            mix_index_1 = np.concatenate(mix_index_1, [index]*num_use)
+            mix_index_1 = np.concatenate(mix_index_1, np.full(num_use, index))
             mix_index_2 = np.concatenate(
                 mix_index_2, index_classes[1][rand_use])
         else:
