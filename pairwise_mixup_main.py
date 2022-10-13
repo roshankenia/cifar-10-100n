@@ -97,7 +97,7 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
             rand_use = rand_use[:num_use]
             print('using:', rand_use)
             mix_index_1 += ([index]*num_use)
-            mix_index_2 += (index_classes[2][rand_use])
+            mix_index_2 += ((index_classes[2][rand_use]).tolist())
         # automobile
         elif y_copy[index] == 1:
             # truck
