@@ -84,8 +84,8 @@ def smart_mixup(x, y, alpha=1.0, use_cuda=True, num_classes=10):
         index_classes[y_copy[index]].append(index)
     for i in range(10):
         index_classes[i] = np.array(index_classes[i])
-    mix_index_1 = []
-    mix_index_2 = []
+    mix_index_1 = np.array([])
+    mix_index_2 = np.array([])
     unused_index = []
     # now create new list of indexes to mix on
     for index in rand_index:
