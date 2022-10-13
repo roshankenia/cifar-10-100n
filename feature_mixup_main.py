@@ -62,6 +62,12 @@ def accuracy(logit, target, topk=(1,)):
 
 def extract_features(x_data):
     # print(x_data.shape)
+    # define our pretrained resnet
+    model = torchvision.models.resnet34(pretrained=True).cuda()
+    num_ftrs = model.fc.in_features
+    model.fc = nn.Linear(num_ftrs, 10)
+    # remove last fully connected layer from model
+    model = torch.nn.Sequential(*(list(model.children())[:-1]))
     # input data to model
     features = model(x_data)
     # features = torch.squeeze(features)
@@ -251,18 +257,6 @@ train_acc = 0
 # training
 file = open("results_feature.txt", "a")
 max_test = 0
-
-# define our pretrained resnet
-feature_extractor = torchvision.models.resnet34(pretrained=True).cuda()
-num_ftrs = feature_extractor.fc.in_features
-feature_extractor.fc = nn.Linear(num_ftrs, num_classes)
-# remove last fully connected layer from model
-feature_extractor = torch.nn.Sequential(
-    *(list(feature_extractor.children())[:-1]))
-
-print(feature_extractor)
-
-exit()
 
 noise_prior_cur = noise_prior
 for epoch in range(args.n_epoch):

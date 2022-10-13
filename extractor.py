@@ -4,6 +4,9 @@ import numpy as np
 import torch
 from torch import optim, nn
 from torchvision import models, transforms
+from torch.autograd import Variable
+from data.datasets import input_dataset
+import argparse
 
 import os
 import sys
@@ -15,6 +18,21 @@ if not torch.cuda.is_available() or torch.cuda.device_count() != 1:
     sys.exit()
 else:
     print('GPU is being properly used')
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--lr', type=float, default=0.1)
+parser.add_argument('--noise_type', type=str,
+                    help='clean, aggre, worst, rand1, rand2, rand3, clean100, noisy100', default='clean')
+parser.add_argument('--noise_path', type=str,
+                    help='path of CIFAR-10_human.pt', default=None)
+parser.add_argument('--dataset', type=str,
+                    help=' cifar10 or cifar100', default='cifar10')
+parser.add_argument('--n_epoch', type=int, default=100)
+parser.add_argument('--seed', type=int, default=0)
+parser.add_argument('--print_freq', type=int, default=50)
+parser.add_argument('--num_workers', type=int, default=4,
+                    help='how many subprocesses to use for data loading')
+parser.add_argument('--is_human', action='store_true', default=False)
 
 
 model = models.vgg16(pretrained=True)
@@ -49,43 +67,72 @@ new_model = FeatureExtractor(model)
 # Change the device to GPU
 new_model = new_model.cuda()
 
-
-# Transform the image, so it becomes readable with the model
-transform = transforms.Compose([
-    transforms.ToPILImage(),
-    transforms.CenterCrop(512),
-    transforms.Resize(448),
-    transforms.ToTensor()
-])
-
 # Will contain the feature
 features = []
 
-# Iterate each image
-for i in tqdm(sample_submission.ImageID):
-    # Set the image path
-    path = os.path.join('data', 'test', str(i) + '.jpg')
-    # Read the file
-    img = cv2.imread(path)
-    # Transform the image
-    img = transform(img)
-    # Reshape the image. PyTorch model reads 4-dimensional tensor
-    # [batch_size, channels, width, height]
-    img = img.reshape(1, 3, 448, 448)
-    img = img.to(device)
-    # We only extract features, so we don't need gradient
-    with torch.no_grad():
-        # Extract the feature from the image
-        feature = new_model(img)
-        # Convert to NumPy Array, Reshape it, and save it to features variable
-    features.append(feature.cpu().detach().numpy().reshape(-1))
+
+#####################################main code ################################################
+args = parser.parse_args()
+# Seed
+torch.manual_seed(args.seed)
+torch.cuda.manual_seed(args.seed)
+
+# Hyper Parameters
+batch_size = 128
+learning_rate = args.lr
+noise_type_map = {'clean': 'clean_label', 'worst': 'worse_label', 'aggre': 'aggre_label', 'rand1': 'random_label1',
+                  'rand2': 'random_label2', 'rand3': 'random_label3', 'clean100': 'clean_label', 'noisy100': 'noisy_label'}
+args.noise_type = noise_type_map[args.noise_type]
+# load dataset
+if args.noise_path is None:
+    if args.dataset == 'cifar10':
+        args.noise_path = './data/CIFAR-10_human.pt'
+    elif args.dataset == 'cifar100':
+        args.noise_path = './data/CIFAR-100_human.pt'
+    else:
+        raise NameError(f'Undefined dataset {args.dataset}')
+
+
+train_dataset, test_dataset, num_classes, num_training_samples = input_dataset(
+    args.dataset, args.noise_type, args.noise_path, args.is_human)
+
+noise_prior = train_dataset.noise_prior
+noise_or_not = train_dataset.noise_or_not
+print('train_labels:', len(train_dataset.train_labels),
+      train_dataset.train_labels[:10])
+
+train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
+                                           batch_size=128,
+                                           num_workers=args.num_workers,
+                                           shuffle=True)
+
+
+test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
+                                          batch_size=64,
+                                          num_workers=args.num_workers,
+                                          shuffle=False)
+
+
+for i, (images, labels, indexes) in enumerate(train_loader):
+    ind = indexes.cpu().numpy().transpose()
+    batch_size = len(ind)
+
+    images = Variable(images).cuda()
+    labels = Variable(labels).cuda()
+    for img in images:
+        # We only extract features, so we don't need gradient
+        with torch.no_grad():
+            # Extract the feature from the image
+            feature = new_model(img)
+            # Convert to NumPy Array, Reshape it, and save it to features variable
+        features.append(feature.cpu().detach().numpy().reshape(-1))
 
 # Convert to NumPy Array
 features = np.array(features)
 
 
 # Initialize the model
-model = KMeans(n_clusters=5, random_state=42)
+model = KMeans(n_clusters=10, random_state=42)
 
 # Fit the data into the model
 model.fit(features)
