@@ -124,12 +124,13 @@ for i, (images, labels, indexes) in enumerate(train_loader):
         # Extract the features from the images
         feature = new_model(images)
         # Convert to NumPy Array, Reshape it, and save it to features variable
-    features.append(feature.cpu().detach().numpy())
+    for j in range(len(feature)):
+        features.append(feature[j].cpu().detach().numpy())
 
+
+print(features)
 # Convert to NumPy Array
 features = np.array(features)
-
-print(features.shape)
 
 
 # Initialize the model
