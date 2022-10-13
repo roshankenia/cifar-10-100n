@@ -114,7 +114,6 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           shuffle=False)
 
 print('extracting features')
-x = 0
 for i, (images, labels, indexes) in enumerate(train_loader):
     ind = indexes.cpu().numpy().transpose()
     batch_size = len(ind)
@@ -130,10 +129,6 @@ for i, (images, labels, indexes) in enumerate(train_loader):
         features.append(feature[j].cpu().detach().numpy())
         noisy_labels.append(labels[j].cpu().detach().numpy())
 
-    x += 1
-    if x == 20:
-        break
-
 # Convert to NumPy Array
 features = np.array(features)
 noisy_labels = np.array(noisy_labels)
@@ -141,7 +136,7 @@ print(features.shape)
 
 print('clustering')
 # Initialize the model
-model = KMeans(n_clusters=10, random_state=42)
+model = KMeans(n_clusters=num_classes, random_state=42)
 
 # Fit the data into the model
 model.fit(features)
@@ -152,10 +147,12 @@ labels = model.labels_
 print(labels)  # [4 3 3 ... 0 0 0]
 
 # calculate average actual label for each given label
+averages = []
 for i in range(num_classes):
     label_indices = np.where(labels == i)
     print()
     print(labels[label_indices])
     print(noisy_labels[label_indices])
     noisy_label_average = np.mean(noisy_labels[label_indices])
-    print(noisy_label_average)
+    averages.append(noisy_label_average)
+print(averages)
