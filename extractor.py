@@ -128,7 +128,7 @@ for i, (images, labels, indexes) in enumerate(train_loader):
         # Convert to NumPy Array, Reshape it, and save it to features variable
     for j in range(len(feature)):
         features.append(feature[j].cpu().detach().numpy())
-        noisy_labels.append(labels[j])
+        noisy_labels.append(labels[j].cpu().detach().numpy())
 
     x += 1
     if x == 5:
