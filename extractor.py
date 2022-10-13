@@ -154,5 +154,6 @@ print(labels)  # [4 3 3 ... 0 0 0]
 # calculate average actual label for each given label
 for i in range(num_classes):
     label_indices = np.where(labels == i)
+    print(noisy_labels[label_indices])
     noisy_label_average = np.mean(noisy_labels[label_indices])
     print(noisy_label_average)
