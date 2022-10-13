@@ -127,17 +127,13 @@ for i, (images, labels, indexes) in enumerate(train_loader):
     for j in range(len(feature)):
         features.append(feature[j].cpu().detach().numpy())
 
-
-print(features)
 # Convert to NumPy Array
 features = np.array(features)
+print(features.shape)
 
 print('clustering')
 # Initialize the model
 model = KMeans(n_clusters=10, random_state=42)
-model = model.cuda()
-
-features = features.cuda()
 
 # Fit the data into the model
 model.fit(features)
