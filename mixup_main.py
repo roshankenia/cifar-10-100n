@@ -79,8 +79,8 @@ def double_mixup(x, y, alpha=1.0, use_cuda=True):
 
     # print(double_indices.long())
 
-    mixed_x = lam * x[:batch_size/2] + (1 - lam) * x[index, :]
-    y_a, y_b = y[:batch_size/2], y[index]
+    mixed_x = lam * x[:int(batch_size/2)] + (1 - lam) * x[index, :]
+    y_a, y_b = y[:int(batch_size/2)], y[index]
     return mixed_x, y_a, y_b, lam
 
 
