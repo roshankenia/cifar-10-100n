@@ -72,13 +72,17 @@ def double_mixup(x, y, alpha=1.0, use_cuda=True):
     batch_size = x.size()[0]
     if use_cuda:
         index = torch.cat((torch.randperm(batch_size),
+                          torch.randperm(batch_size), torch.randperm(
+                              batch_size),
                           torch.randperm(batch_size))).cuda()
     else:
         index = torch.cat((torch.randperm(batch_size),
+                          torch.randperm(batch_size), torch.randperm(
+                              batch_size),
                           torch.randperm(batch_size)))
 
-    x_extended = torch.cat((x, x)).cuda()
-    y_extended = torch.cat((y, y)).cuda()
+    x_extended = torch.cat((x, x, x, x)).cuda()
+    y_extended = torch.cat((y, y, y, y)).cuda()
 
     mixed_x = lam * x_extended + (1 - lam) * x[index, :]
     y_a, y_b = y_extended, y[index]
@@ -412,7 +416,7 @@ epoch = 0
 train_acc = 0
 
 # training
-file = open("normal_mixup.txt", "a")
+file = open("normal_mixup_512.txt", "a")
 max_test = 0
 
 noise_prior_cur = noise_prior
