@@ -311,9 +311,9 @@ def train(epoch, train_loader, model, optimizer):
             Variable, (inputs, targets_a, targets_b))
 
         # Forward + Backward + Optimize
-        print(targets_a.shape)
-        print(targets_b.shape)
-        print(inputs.shape)
+        # print(targets_a.shape)
+        # print(targets_b.shape)
+        # print(inputs.shape)
         logits = model(inputs)
 
         prec_a, _ = accuracy(logits, targets_a, topk=(1, 5))
