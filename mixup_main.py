@@ -308,6 +308,8 @@ def train(epoch, train_loader, model, optimizer):
             Variable, (inputs, targets_a, targets_b))
 
         # Forward + Backward + Optimize
+        print(targets_a.shape)
+        print(targets_b.shape)
         print(inputs.shape)
         logits = model(inputs)
 
