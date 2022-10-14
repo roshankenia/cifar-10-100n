@@ -74,8 +74,8 @@ def double_mixup(x, y, alpha=1.0, use_cuda=True):
     else:
         index = torch.randperm(2*batch_size)
 
-    x_extended = torch.cat((x, x))
-    y_extended = torch.cat((y, y))
+    x_extended = torch.cat((x, x)).cuda()
+    y_extended = torch.cat((y, y)).cuda()
 
     mixed_x = lam * x_extended + (1 - lam) * x[index, :]
     y_a, y_b = y_extended, y[index]
@@ -303,12 +303,11 @@ def train(epoch, train_loader, model, optimizer):
         labels = Variable(labels).cuda()
 
         # mixup data
-        inputs, targets_a, targets_b, lam = mixup_data(images, labels)
+        inputs, targets_a, targets_b, lam = double_mixup(images, labels)
         inputs, targets_a, targets_b = map(
             Variable, (inputs, targets_a, targets_b))
 
         # Forward + Backward + Optimize
-        print()
         print(targets_a.shape)
         print(targets_b.shape)
         print(inputs.shape)
