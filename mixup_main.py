@@ -70,17 +70,15 @@ def double_mixup(x, y, alpha=1.0, use_cuda=True):
 
     batch_size = x.size()[0]
     if use_cuda:
-        index = torch.randperm(int(1/2*batch_size)).cuda()
+        index = torch.randperm(2*batch_size).cuda()
     else:
-        index = torch.randperm(int(1/2*batch_size))
-    # ind1 = torch.Tensor([i for i in range(batch_size)])
-    # ind2 = torch.Tensor([i for i in range(batch_size)])
-    # double_indices = torch.cat((ind1, ind2))
+        index = torch.randperm(2*batch_size)
 
-    # print(double_indices.long())
+    x_extended = torch.cat((x, x))
+    y_extended = torch.cat((y, y))
 
-    mixed_x = lam * x[:int(batch_size/2)] + (1 - lam) * x[index, :]
-    y_a, y_b = y[:int(batch_size/2)], y[index]
+    mixed_x = lam * x_extended + (1 - lam) * x[index, :]
+    y_a, y_b = y_extended, y[index]
     return mixed_x, y_a, y_b, lam
 
 
