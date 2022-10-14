@@ -77,7 +77,7 @@ def double_mixup(x, y, alpha=1.0, use_cuda=True):
     ind2 = torch.Tensor([i for i in range(batch_size)])
     double_indices = torch.cat((ind1, ind2))
 
-    print(double_indices)
+    print(double_indices.long())
 
     mixed_x = lam * x[double_indices.long(), :] + (1 - lam) * x[index, :]
     y_a, y_b = y[double_indices.long()], y[index]
