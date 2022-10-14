@@ -303,11 +303,12 @@ def train(epoch, train_loader, model, optimizer):
         labels = Variable(labels).cuda()
 
         # mixup data
-        inputs, targets_a, targets_b, lam = double_mixup(images, labels)
+        inputs, targets_a, targets_b, lam = mixup_data(images, labels)
         inputs, targets_a, targets_b = map(
             Variable, (inputs, targets_a, targets_b))
 
         # Forward + Backward + Optimize
+        print()
         print(targets_a.shape)
         print(targets_b.shape)
         print(inputs.shape)
