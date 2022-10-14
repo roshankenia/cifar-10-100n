@@ -61,6 +61,27 @@ def accuracy(logit, target, topk=(1,)):
 # Train the Model
 
 
+def double_mixup(x, y, alpha=1.0, use_cuda=True):
+    '''Returns mixed inputs, pairs of targets, and lambda'''
+    if alpha > 0:
+        lam = np.random.beta(alpha, alpha)
+    else:
+        lam = 1
+
+    batch_size = x.size()[0]
+    if use_cuda:
+        index = torch.randperm(2*batch_size).cuda()
+    else:
+        index = torch.randperm(2*batch_size)
+    ind1 = torch.Tensor([i for i in range(batch_size)])
+    ind2 = torch.Tensor([i for i in range(batch_size)])
+    double_indices = torch.cat((ind1, ind2))
+
+    mixed_x = lam * x[double_indices, :] + (1 - lam) * x[index, :]
+    y_a, y_b = y[double_indices], y[index]
+    return mixed_x, y_a, y_b, lam
+
+
 def mixup_data(x, y, alpha=1.0, use_cuda=True):
     '''Returns mixed inputs, pairs of targets, and lambda'''
     if alpha > 0:
@@ -282,7 +303,7 @@ def train(epoch, train_loader, model, optimizer):
         labels = Variable(labels).cuda()
 
         # mixup data
-        inputs, targets_a, targets_b, lam = mixup_data(images, labels)
+        inputs, targets_a, targets_b, lam = double_mixup(images, labels)
         inputs, targets_a, targets_b = map(
             Variable, (inputs, targets_a, targets_b))
 
@@ -367,10 +388,10 @@ print('building model done')
 optimizer = torch.optim.SGD(
     model.parameters(), lr=learning_rate, weight_decay=0.0005, momentum=0.9)
 
-# train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
-#                                            batch_size=128,
-#                                            num_workers=args.num_workers,
-#                                            shuffle=True)
+train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
+                                           batch_size=128,
+                                           num_workers=args.num_workers,
+                                           shuffle=True)
 
 
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
@@ -385,21 +406,27 @@ epoch = 0
 train_acc = 0
 
 # training
+file = open("normal_mixup.txt", "a")
+max_test = 0
+
 noise_prior_cur = noise_prior
 for epoch in range(args.n_epoch):
-
-    train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
-                                               batch_size=128,
-                                               num_workers=args.num_workers,
-                                               shuffle=True)
-
     # train models
     print(f'epoch {epoch}')
     adjust_learning_rate(optimizer, epoch, alpha_plan)
     model.train()
+    # train_acc = smart_train(epoch, train_loader, model, optimizer)
     train_acc = train(epoch, train_loader, model, optimizer)
     # evaluate models
     test_acc = evaluate(test_loader=test_loader, model=model)
+    if test_acc > max_test:
+        max_test = test_acc
     # save results
     print('train acc on train images is ', train_acc)
     print('test acc on test images is ', test_acc)
+    file.write("\nepoch: "+str(epoch))
+    file.write("\ttrain acc on train images is "+str(train_acc)+"\n")
+    file.write("\ttest acc on test images is "+str(test_acc)+"\n")
+file.write("\n\nfinal test acc on test images is "+str(test_acc)+"\n")
+file.write("max test acc on test images is "+str(max_test)+"\n")
+file.close()
