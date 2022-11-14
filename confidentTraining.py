@@ -109,8 +109,8 @@ def train(epoch, train_loader, model, optimizer, num_classes, noise_or_not):
             print('Epoch [%d/%d], Iter [%d/%d] Training Accuracy: %.4F, Loss: %.4f'
                   % (epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, prec, loss.data))
 
-    print(f'Confident noise: {conf_inc} out of {len(confident_samples)}')
-    print(f'Unconfident noise: {unconf_inc} out of {len(unconfident_samples)}')
+    print(f'Confident noise: {conf_inc} out of {num_conf}')
+    print(f'Unconfident noise: {unconf_inc} out of {num_unconf}')
     train_acc = float(train_correct)/float(train_total)
     return train_acc, conf_inc, num_conf, unconf_inc, num_unconf
 # test

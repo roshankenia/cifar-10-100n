@@ -44,7 +44,7 @@ def consistencyIndexes(logits, labels, num_classes):
         confidence = calculate_confidence(y_pred_i)
 
         # calculate average confidence
-        avg_conf = torch.mean(confidence)
+        avg_conf = 1/4 * torch.mean(confidence)
 
         # conf_ind
         confident_ind += ((confidence < avg_conf).nonzero().flatten().tolist())
