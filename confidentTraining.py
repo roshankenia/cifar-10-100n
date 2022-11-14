@@ -108,7 +108,7 @@ def train(epoch, train_loader, model, optimizer, num_classes, noise_or_not):
     print(f'Confident noise: {conf_inc} out of {len(confident_samples)}')
     print(f'Unconfident noise: {unconf_inc} out of {len(unconfident_samples)}')
     train_acc = float(train_correct)/float(train_total)
-    return train_acc
+    return train_acc, conf_inc, len(confident_samples), unconf_inc, len(unconfident_samples)
 # test
 # Evaluate the Model
 
@@ -184,16 +184,33 @@ epoch = 0
 train_acc = 0
 
 # training
-noise_prior_cur = noise_prior
+file = open("confident_training.txt", "w")
+max_test = 0
+
 for epoch in range(args.n_epoch):
     # train models
     print(f'epoch {epoch}')
     adjust_learning_rate(optimizer, epoch, alpha_plan)
     model.train()
-    train_acc = train(epoch, train_loader, model,
-                      optimizer, num_classes, noise_or_not)
+    train_acc, conf_inc, num_conf, unconf_inc, num_unconf = train(epoch, train_loader, model,
+                                                                  optimizer, num_classes, noise_or_not)
     # evaluate models
     test_acc = evaluate(test_loader=test_loader, model=model)
+    if test_acc > max_test:
+        max_test = test_acc
     # save results
     print('train acc on train images is ', train_acc)
     print('test acc on test images is ', test_acc)
+    file.write("\nepoch: "+str(epoch))
+    file.write("\ttrain acc on train images is "+str(train_acc)+"\n")
+    file.write("\ttest acc on test images is "+str(test_acc)+"\n")
+
+    file.write("\tnum of noisy samples in confident: " +
+               str(conf_inc)+" out of: " + str(num_conf)+"\n")
+    file.write("\tnum of noisy samples in unconfident: " +
+               str(unconf_inc)+" out of: " + str(num_unconf)+"\n")
+
+    file.write("\ttest acc on test images is "+str(test_acc)+"\n")
+file.write("\n\nfinal test acc on test images is "+str(test_acc)+"\n")
+file.write("max test acc on test images is "+str(max_test)+"\n")
+file.close()
