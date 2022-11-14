@@ -20,7 +20,7 @@ else:
 
 def calculate_confidence(y_pred):
     num_samp = len(y_pred)
-    confidence = torch.zeros(num_samp)
+    confidence = torch.zeros(num_samp).cuda()
     # compute difference score for each pair
     for i in range(num_samp):
         for j in range(num_samp):
