@@ -85,7 +85,7 @@ def train(epoch, train_loader, model, optimizer, num_classes, noise_or_not):
             logits, labels, num_classes)
 
         print('conf:',confident_ind)
-        print('unconf:',unconfident_samples)
+        print('unconf:',unconfident_ind)
 
         # calculate how accurate
         confident_samples = indexes[confident_ind]
