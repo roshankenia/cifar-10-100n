@@ -49,10 +49,9 @@ def consistencyIndexes(logits, labels, num_classes):
         avg_conf = torch.mean(confidence)
 
         # conf_ind
-        confident_ind.append(
-            (confidence < avg_conf).nonzero().flatten().tolist())
+        confident_ind += ((confidence < avg_conf).nonzero().flatten().tolist())
         # unconf_ind
-        unconfident_ind.append(
-            (confidence >= avg_conf).nonzero().flatten().tolist())
+        unconfident_ind += ((confidence >=
+                            avg_conf).nonzero().flatten().tolist())
 
     return confident_ind, unconfident_ind
