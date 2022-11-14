@@ -37,7 +37,7 @@ def consistencyIndexes(logits, labels, num_classes):
 
     for i in range(num_classes):
         # get all indexes that have i as their label
-        i_labels = (labels == torch.Tensor(i)).nonzero().flatten().tolist()
+        i_labels = (labels == i).nonzero().flatten().tolist()
         y_pred_i = y_pred[i_labels]
 
         # obtain confidence
