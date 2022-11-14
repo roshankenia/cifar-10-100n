@@ -1,0 +1,6 @@
+
+epoch: 0	train acc on train images is 22.81489769820972
+	test acc on test images is 31.77
+	num of noisy samples in confident: 2955 out of: 49
+	num of noisy samples in unconfident: 1353 out of: 31
+	test acc on test images is 31.77
