@@ -34,11 +34,13 @@ def consistencyIndexes(logits, labels, num_classes):
     y_pred = F.softmax(logits)
 
     confident_ind, unconfident_ind = [], []
+    indexes = [i for i in range(len(labels))]
 
     for i in range(num_classes):
         # get all indexes that have i as their label
         i_labels = (labels == i).nonzero().flatten().tolist()
         y_pred_i = y_pred[i_labels]
+        indexes_i = indexes[i_labels]
 
         # obtain confidence
         confidence = calculate_confidence(y_pred_i)
@@ -47,9 +49,10 @@ def consistencyIndexes(logits, labels, num_classes):
         avg_conf = 1/4 * torch.mean(confidence)
 
         # conf_ind
-        confident_ind += ((confidence < avg_conf).nonzero().flatten().tolist())
+        confident_ind += indexes_i[((confidence <
+                                  avg_conf).nonzero().flatten().tolist())]
         # unconf_ind
-        unconfident_ind += ((confidence >=
-                            avg_conf).nonzero().flatten().tolist())
+        unconfident_ind += indexes_i[((confidence >=
+                                    avg_conf).nonzero().flatten().tolist())]
 
     return confident_ind, unconfident_ind
