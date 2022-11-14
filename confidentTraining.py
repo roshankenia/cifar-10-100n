@@ -65,8 +65,10 @@ def train(epoch, train_loader, model, optimizer, num_classes, noise_or_not):
     train_correct = 0
 
     conf_inc = 0
+    num_conf = 0
 
     unconf_inc = 0
+    num_unconf = 0
 
     for i, (images, labels, indexes) in enumerate(train_loader):
         ind = indexes.cpu().numpy().transpose()
@@ -88,9 +90,11 @@ def train(epoch, train_loader, model, optimizer, num_classes, noise_or_not):
 
         for ind in confident_samples:
             conf_inc += noise_or_not[ind]
+        num_conf += len(confident_samples)
 
         for ind in unconfident_samples:
             unconf_inc += noise_or_not[ind]
+        num_unconf += len(unconfident_samples)
 
         prec, _ = accuracy(logits, labels, topk=(1, 5))
         # prec = 0.0
@@ -108,7 +112,7 @@ def train(epoch, train_loader, model, optimizer, num_classes, noise_or_not):
     print(f'Confident noise: {conf_inc} out of {len(confident_samples)}')
     print(f'Unconfident noise: {unconf_inc} out of {len(unconfident_samples)}')
     train_acc = float(train_correct)/float(train_total)
-    return train_acc, conf_inc, len(confident_samples), unconf_inc, len(unconfident_samples)
+    return train_acc, conf_inc, num_conf, unconf_inc, num_unconf
 # test
 # Evaluate the Model
 
