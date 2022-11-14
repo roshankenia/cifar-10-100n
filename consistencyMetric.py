@@ -34,7 +34,7 @@ def consistencyIndexes(logits, labels, num_classes):
     y_pred = F.softmax(logits)
 
     confident_ind, unconfident_ind = [], []
-    indexes = [i for i in range(len(labels))]
+    indexes = np.array([i for i in range(len(labels))])
 
     for i in range(num_classes):
         # get all indexes that have i as their label
@@ -50,9 +50,9 @@ def consistencyIndexes(logits, labels, num_classes):
 
         # conf_ind
         confident_ind += indexes_i[((confidence <
-                                  avg_conf).nonzero().flatten().tolist())]
+                                  avg_conf).nonzero().flatten().tolist())].tolist()
         # unconf_ind
         unconfident_ind += indexes_i[((confidence >=
-                                    avg_conf).nonzero().flatten().tolist())]
+                                    avg_conf).nonzero().flatten().tolist())].tolist()
 
     return confident_ind, unconfident_ind
